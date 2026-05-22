@@ -19,9 +19,11 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5.75rem;
 }
 
 body {
+  width: 100%;
   min-width: 320px;
   min-height: 100vh;
   margin: 0;

@@ -4,9 +4,10 @@ import { motion } from "framer-motion";
 import { Logo } from "./Logo";
 
 const navItems = [
-  { id: "inicio", label: "Início" },
+  { id: "inicio", label: "Inicio" },
+  { id: "promocoes", label: "Promocoes" },
   { id: "destaques", label: "Destaques" },
-  { id: "catalogo", label: "Catálogo" }
+  { id: "catalogo", label: "Catalogo" }
 ];
 
 export function Header({ cartCount, onNavigate, onOpenCart }) {
@@ -18,25 +19,25 @@ export function Header({ cartCount, onNavigate, onOpenCart }) {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-mir-gold/10 bg-mir-black/82 backdrop-blur-2xl">
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-mir-gold/10 bg-mir-black/84 backdrop-blur-2xl">
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-mir-gold/35 to-transparent" />
-      <div className="mx-auto flex h-[4.75rem] max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-6 lg:px-8">
         <button
           type="button"
           onClick={() => handleNavigate("inicio")}
-          className="flex shrink-0 items-center text-left"
-          aria-label="Ir para o início"
+          className="flex min-w-0 shrink-0 items-center text-left"
+          aria-label="Ir para o inicio"
         >
           <Logo />
         </button>
 
-        <nav className="hidden items-center gap-2 rounded-sm border border-white/10 bg-white/[0.025] p-1 lg:flex">
+        <nav className="hidden items-center gap-1 rounded-sm border border-white/10 bg-white/[0.025] p-1 lg:flex">
           {navItems.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => handleNavigate(item.id)}
-              className="rounded-sm px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-mir-silver/72 transition hover:bg-white/[0.04] hover:text-mir-gold xl:px-5 xl:tracking-[0.24em]"
+              className="rounded-sm px-3 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-mir-silver/72 transition hover:bg-white/[0.04] hover:text-mir-gold xl:px-4 xl:tracking-[0.2em]"
             >
               {item.label}
             </button>
@@ -83,7 +84,7 @@ export function Header({ cartCount, onNavigate, onOpenCart }) {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="border-t border-white/10 bg-mir-black px-4 py-5 lg:hidden"
+          className="max-h-[calc(100vh-4.5rem)] overflow-y-auto border-t border-white/10 bg-mir-black px-4 py-5 lg:hidden"
         >
           <div className="mx-auto grid max-w-7xl gap-2">
             {navItems.map((item) => (
@@ -91,7 +92,7 @@ export function Header({ cartCount, onNavigate, onOpenCart }) {
                 key={item.id}
                 type="button"
                 onClick={() => handleNavigate(item.id)}
-                className="flex items-center justify-between rounded-sm px-3 py-3 text-left text-sm uppercase tracking-[0.22em] text-mir-silver/80 hover:bg-white/[0.04] hover:text-mir-gold"
+                className="flex min-h-12 items-center justify-between rounded-sm border border-white/10 px-3 py-3 text-left text-sm uppercase tracking-[0.18em] text-mir-silver/80 hover:bg-white/[0.04] hover:text-mir-gold"
               >
                 {item.label}
               </button>

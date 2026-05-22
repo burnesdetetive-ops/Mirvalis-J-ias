@@ -78,6 +78,16 @@ export function CartDrawer({
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <h3 className="font-display text-xl text-white">{item.name}</h3>
+                            {item.promotion && (
+                              <p className="mt-1 text-xs uppercase tracking-[0.16em] text-mir-gold">
+                                Promocao
+                              </p>
+                            )}
+                            {item.promotion && (
+                              <p className="mt-1 text-xs text-mir-silver/38 line-through">
+                                {formatCurrency(item.originalPrice)}
+                              </p>
+                            )}
                             <p className="mt-1 text-sm text-mir-silver/62">
                               {formatCurrency(item.price)}
                             </p>

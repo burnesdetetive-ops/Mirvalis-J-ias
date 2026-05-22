@@ -1,4 +1,4 @@
-import { Eye, Send } from "lucide-react";
+import { Eye, Send, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { getCategoryLabel } from "../data/initialProducts";
 import { formatCurrency } from "../lib/format";
@@ -7,6 +7,7 @@ import { buildWhatsAppUrl, openWhatsAppUrl } from "../lib/whatsapp";
 
 export function ProductCard({ product, onView, whatsappNumber }) {
   const unavailable = isProductUnavailable(product);
+  const promotion = product.promotion;
   const whatsappUrl = unavailable
     ? undefined
     : buildWhatsAppUrl({ product, phone: whatsappNumber });
@@ -34,7 +35,13 @@ export function ProductCard({ product, onView, whatsappNumber }) {
             Esgotado
           </div>
         )}
-        {product.featured && !unavailable && (
+        {promotion && !unavailable && (
+          <div className="absolute left-4 top-4 inline-flex items-center gap-2 border border-mir-gold/45 bg-mir-black/78 px-3 py-1 text-xs uppercase tracking-[0.18em] text-mir-gold">
+            <Tag size={13} />
+            Promocao
+          </div>
+        )}
+        {product.featured && !unavailable && !promotion && (
           <div className="absolute left-4 top-4 border border-mir-gold/35 bg-mir-black/70 px-3 py-1 text-xs uppercase tracking-[0.22em] text-mir-gold">
             Destaque
           </div>
@@ -54,10 +61,22 @@ export function ProductCard({ product, onView, whatsappNumber }) {
               {product.name}
             </h3>
           </div>
-          <p className="shrink-0 whitespace-nowrap pt-1 text-sm font-semibold text-mir-silver">
-            {formatCurrency(product.price)}
-          </p>
+          <div className="shrink-0 pt-1 text-right">
+            {promotion && (
+              <p className="text-xs text-mir-silver/42 line-through">
+                {formatCurrency(product.originalPrice)}
+              </p>
+            )}
+            <p className={`whitespace-nowrap text-sm font-semibold ${promotion ? "text-mir-gold" : "text-mir-silver"}`}>
+              {formatCurrency(product.price)}
+            </p>
+          </div>
         </div>
+        {promotion && (
+          <div className="mt-3 inline-flex items-center gap-2 border border-mir-gold/25 bg-mir-gold/[0.08] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-mir-gold">
+            {promotion.discountPercent > 0 ? `${promotion.discountPercent}% OFF` : "Oferta especial"}
+          </div>
+        )}
         <p className="mt-3 text-xs uppercase tracking-[0.22em] text-mir-silver/42">
           {getStockLabel(product)}
         </p>
@@ -65,7 +84,7 @@ export function ProductCard({ product, onView, whatsappNumber }) {
           {product.description}
         </p>
 
-        <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
+        <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
           <a
             href={whatsappUrl}
             target="_blank"
@@ -76,7 +95,7 @@ export function ProductCard({ product, onView, whatsappNumber }) {
               openWhatsAppUrl(whatsappUrl);
             }}
             aria-disabled={unavailable}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-sm px-4 text-center text-xs font-semibold uppercase tracking-[0.14em] transition ${
+            className={`inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-sm px-3 text-center text-xs font-semibold uppercase tracking-[0.1em] transition sm:px-4 sm:tracking-[0.14em] ${
               unavailable
                 ? "pointer-events-none border border-white/10 text-mir-silver/35"
                 : "bg-mir-gold text-mir-black hover:bg-[#dfbd6a]"

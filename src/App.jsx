@@ -11,14 +11,17 @@ import { AdminLogin } from "./components/AdminLogin";
 import { Logo } from "./components/Logo";
 import { TrustSection } from "./components/TrustSection";
 import { FloatingWhatsApp } from "./components/FloatingWhatsApp";
+import { PromotionsSection } from "./components/PromotionsSection";
 import { CATALOG_VERSION, initialProducts } from "./data/initialProducts";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { getProductStock, isProductUnavailable } from "./lib/product";
+import { applyPromotionsToProducts } from "./lib/promotions";
 import { MIRVALIS_WHATSAPP } from "./lib/whatsapp";
 import { ADMIN_ROUTE } from "./lib/adminAuth";
 
 function App() {
   const [products, setProducts] = useLocalStorage("mirvalis-products", initialProducts);
+  const [promotions, setPromotions] = useLocalStorage("mirvalis-promotions", []);
   const [cartItems, setCartItems] = useLocalStorage("mirvalis-cart", []);
   const [whatsappNumber, setWhatsappNumber] = useLocalStorage(
     "mirvalis-whatsapp",
@@ -84,16 +87,28 @@ function App() {
     [products]
   );
 
+  const promotedProducts = useMemo(
+    () => applyPromotionsToProducts(normalizedProducts, promotions),
+    [normalizedProducts, promotions]
+  );
+
   const cartItemsWithStock = useMemo(
     () =>
       cartItems.map((item) => {
-        const currentProduct = normalizedProducts.find((product) => product.id === item.id);
-        return currentProduct ? { ...item, stock: currentProduct.stock, soldOut: currentProduct.soldOut } : item;
+        const currentProduct = promotedProducts.find((product) => product.id === item.id);
+        return currentProduct
+          ? {
+              ...item,
+              ...currentProduct,
+              quantity: item.quantity
+            }
+          : item;
       }),
-    [cartItems, normalizedProducts]
+    [cartItems, promotedProducts]
   );
 
-  const featuredProducts = normalizedProducts.filter((product) => product.featured).slice(0, 4);
+  const featuredProducts = promotedProducts.filter((product) => product.featured).slice(0, 4);
+  const promotionProducts = promotedProducts.filter((product) => product.promotion).slice(0, 4);
 
   const cartCount = cartItemsWithStock.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = useMemo(
@@ -125,7 +140,7 @@ function App() {
     setCartItems((currentItems) =>
       currentItems.map((item) => {
         if (item.id !== id) return item;
-        const currentProduct = normalizedProducts.find((product) => product.id === id) || item;
+        const currentProduct = promotedProducts.find((product) => product.id === id) || item;
         return {
           ...item,
           quantity: Math.min(item.quantity + 1, getProductStock(currentProduct)),
@@ -164,6 +179,8 @@ function App() {
       <AdminPanel
         products={normalizedProducts}
         setProducts={setProducts}
+        promotions={promotions}
+        setPromotions={setPromotions}
         whatsappNumber={whatsappNumber}
         setWhatsappNumber={setWhatsappNumber}
         onLogout={handleAdminLogout}
@@ -180,6 +197,14 @@ function App() {
 
       <main>
         <TrustSection />
+
+        <PromotionsSection
+          products={promotionProducts}
+          onAdd={addToCart}
+          onView={setSelectedProduct}
+          whatsappNumber={whatsappNumber}
+          onSeeAll={() => navigateTo("catalogo")}
+        />
 
         <section id="destaques" className="relative overflow-hidden py-24 sm:py-28">
           <div className="absolute inset-x-0 top-20 flex justify-center opacity-70">
@@ -242,7 +267,7 @@ function App() {
         </section>
 
         <Catalog
-          products={normalizedProducts}
+          products={promotedProducts}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
           query={query}

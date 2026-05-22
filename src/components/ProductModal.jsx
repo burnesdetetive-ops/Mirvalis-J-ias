@@ -1,6 +1,6 @@
 import { Minus, Plus, Send, ShoppingBag, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getCategoryLabel } from "../data/initialProducts";
 import { formatCurrency } from "../lib/format";
 import { getStockLabel, isProductUnavailable } from "../lib/product";
@@ -9,8 +9,13 @@ import { buildWhatsAppUrl, openWhatsAppUrl } from "../lib/whatsapp";
 export function ProductModal({ product, whatsappNumber, onClose, onAdd }) {
   const [imageIndex, setImageIndex] = useState(0);
   const unavailable = product ? isProductUnavailable(product) : false;
+  const promotion = product?.promotion;
   const whatsappUrl =
     product && !unavailable ? buildWhatsAppUrl({ product, phone: whatsappNumber }) : undefined;
+
+  useEffect(() => {
+    setImageIndex(0);
+  }, [product?.id]);
 
   return (
     <AnimatePresence>
@@ -72,9 +77,21 @@ export function ProductModal({ product, whatsappNumber, onClose, onAdd }) {
                 <h2 className="mt-4 font-display text-5xl font-semibold leading-tight text-white">
                   {product.name}
                 </h2>
-                <p className="mt-5 text-2xl font-semibold text-mir-silver">
-                  {formatCurrency(product.price)}
-                </p>
+                <div className="mt-5">
+                  {promotion && (
+                    <div className="mb-3 inline-flex border border-mir-gold/25 bg-mir-gold/[0.08] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-mir-gold">
+                      Promocao {promotion.discountPercent > 0 ? `${promotion.discountPercent}% OFF` : ""}
+                    </div>
+                  )}
+                  {promotion && (
+                    <p className="text-base text-mir-silver/42 line-through">
+                      {formatCurrency(product.originalPrice)}
+                    </p>
+                  )}
+                  <p className={`text-3xl font-semibold ${promotion ? "text-mir-gold" : "text-mir-silver"}`}>
+                    {formatCurrency(product.price)}
+                  </p>
+                </div>
                 <p className="mt-4 text-xs uppercase tracking-[0.24em] text-mir-gold/75">
                   {getStockLabel(product)}
                 </p>
