@@ -123,7 +123,7 @@ function App() {
       setPromotions(localData.promotions);
       setCatalogStatus({
         loading: false,
-        error: `Nao foi possivel carregar o Supabase. Fallback local ativo: ${error.message}`,
+        error: `Não foi possível carregar o Supabase. Fallback local ativo: ${error.message}`,
         shared: false
       });
     }
@@ -174,9 +174,9 @@ function App() {
       products.map((product) => ({
         ...product,
         stock: Number.isFinite(Number(product.stock))
-          ? Math.max(0, Number(product.stock))
+          ?Math.max(0, Number(product.stock))
           : product.soldOut
-            ? 0
+            ?0
             : 1
       })),
     [products]
@@ -192,7 +192,7 @@ function App() {
       cartItems.map((item) => {
         const currentProduct = promotedProducts.find((product) => product.id === item.id);
         return currentProduct
-          ? {
+          ?{
               ...item,
               ...currentProduct,
               quantity: item.quantity
@@ -222,7 +222,7 @@ function App() {
       if (existingItem) {
         return currentItems.map((item) =>
           item.id === product.id
-            ? { ...item, stock: product.stock, quantity: Math.min(item.quantity + 1, getProductStock(product)) }
+            ?{ ...item, stock: product.stock, quantity: Math.min(item.quantity + 1, getProductStock(product)) }
             : item
         );
       }
@@ -248,7 +248,7 @@ function App() {
   const decrementItem = (id) => {
     setCartItems((currentItems) =>
       currentItems
-        .map((item) => (item.id === id ? { ...item, quantity: item.quantity - 1 } : item))
+        .map((item) => (item.id === id ?{ ...item, quantity: item.quantity - 1 } : item))
         .filter((item) => item.quantity > 0)
     );
   };
@@ -265,7 +265,7 @@ function App() {
 
   const handleSaveProduct = async (product, { editing = false } = {}) => {
     const nextProducts = editing
-      ? productsRef.current.map((currentProduct) => (currentProduct.id === product.id ? product : currentProduct))
+      ?productsRef.current.map((currentProduct) => (currentProduct.id === product.id ?product : currentProduct))
       : [product, ...productsRef.current];
 
     setProducts(nextProducts);
@@ -305,8 +305,8 @@ function App() {
 
   const handleSavePromotion = async (promotion, { editing = false } = {}) => {
     const nextPromotions = editing
-      ? promotionsRef.current.map((currentPromotion) =>
-          currentPromotion.id === promotion.id ? promotion : currentPromotion
+      ?promotionsRef.current.map((currentPromotion) =>
+          currentPromotion.id === promotion.id ?promotion : currentPromotion
         )
       : [promotion, ...promotionsRef.current];
 
@@ -351,8 +351,8 @@ function App() {
     navigateTo("inicio");
   };
 
-  const adminExperience = adminRoute ? (
-    adminAuthenticated ? (
+  const adminExperience = adminRoute ?(
+    adminAuthenticated ?(
       <AdminPanel
         products={normalizedProducts}
         promotions={promotions}

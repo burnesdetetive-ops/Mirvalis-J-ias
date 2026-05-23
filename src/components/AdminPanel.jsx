@@ -100,7 +100,7 @@ export function AdminPanel({
       soldOut: Boolean(form.soldOut) || Number(form.stock || 0) <= 0,
       images:
         form.images.length > 0
-          ? form.images
+          ?form.images
           : ["https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=1200&q=82"]
     };
 
@@ -116,7 +116,7 @@ export function AdminPanel({
       name: product.name,
       category: product.category,
       price: product.price,
-      stock: Number.isFinite(Number(product.stock)) ? Number(product.stock) : product.soldOut ? 0 : 1,
+      stock: Number.isFinite(Number(product.stock)) ?Number(product.stock) : product.soldOut ?0 : 1,
       featured: product.featured,
       soldOut: product.soldOut,
       description: product.description,
@@ -147,7 +147,7 @@ export function AdminPanel({
   const togglePromotionProduct = (productId) => {
     setPromotionForm((currentForm) => {
       const productIds = currentForm.productIds.includes(productId)
-        ? currentForm.productIds.filter((id) => id !== productId)
+        ?currentForm.productIds.filter((id) => id !== productId)
         : [...currentForm.productIds, productId];
       return { ...currentForm, productIds };
     });
@@ -160,11 +160,11 @@ export function AdminPanel({
     const normalizedPromotion = {
       ...promotionForm,
       id: editingPromotionId || `${createSlug(promotionForm.name || "promocao")}-${Date.now()}`,
-      name: promotionForm.name || "Promocao MIRVALIS",
+      name: promotionForm.name || "Promoção MIRVALIS",
       active: Boolean(promotionForm.active),
       productIds: promotionForm.productIds,
-      promotionalPrice: promotionForm.promotionalPrice ? Number(promotionForm.promotionalPrice) : "",
-      discountPercent: promotionForm.discountPercent ? Number(promotionForm.discountPercent) : "",
+      promotionalPrice: promotionForm.promotionalPrice ?Number(promotionForm.promotionalPrice) : "",
+      discountPercent: promotionForm.discountPercent ?Number(promotionForm.discountPercent) : "",
       startDate: promotionForm.startDate || "",
       endDate: promotionForm.endDate || ""
     };
@@ -226,20 +226,20 @@ export function AdminPanel({
         <div className="max-w-3xl">
           <p className="text-xs uppercase tracking-[0.38em] text-mir-gold">Painel</p>
           <h2 className="mt-4 font-display text-4xl font-semibold text-white sm:text-6xl">
-            Administracao simples
+            Administração simples
           </h2>
           <p className="mt-5 text-base leading-8 text-mir-silver/64">
-            Cadastre produtos reais, ajuste o WhatsApp da loja e gerencie promocoes no catalogo
+            Cadastre produtos reais, ajuste o WhatsApp da loja e gerencie promoções no catálogo
             compartilhado.
           </p>
           <div
             className={`mt-5 inline-flex max-w-full items-center rounded-sm border px-3 py-2 text-xs uppercase tracking-[0.16em] ${
               catalogStatus?.shared
-                ? "border-mir-gold/35 text-mir-gold"
+                ?"border-mir-gold/35 text-mir-gold"
                 : "border-white/10 text-mir-silver/45"
             }`}
           >
-            {catalogStatus?.shared ? "Banco Supabase conectado" : "Modo local / Supabase pendente"}
+            {catalogStatus?.shared ?"Banco Supabase conectado" : "Modo local / Supabase pendente"}
           </div>
           {catalogStatus?.error && (
             <p className="mt-3 max-w-2xl text-sm leading-6 text-mir-silver/55">
@@ -266,13 +266,13 @@ export function AdminPanel({
                 <div className="min-w-0 flex-1">
                   <h3 className="font-display text-3xl text-white">WhatsApp da loja</h3>
                   <p className="mt-2 text-sm leading-6 text-mir-silver/58">
-                    Este numero sera usado nos botoes de compra e finalizacao do pedido.
+                    Este número será usado nos botões de compra e finalização do pedido.
                   </p>
                 </div>
               </div>
               <label className="mt-5 block">
                 <span className="mb-2 block text-xs uppercase tracking-[0.22em] text-mir-gold/75">
-                  Numero com DDI e DDD
+                  Número com DDI e DDD
                 </span>
                 <input
                   value={whatsappNumber}
@@ -287,9 +287,9 @@ export function AdminPanel({
             <div id="admin-promocoes" className="rounded-sm surface p-5 sm:p-7">
               <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.28em] text-mir-gold">Promocoes</p>
+                  <p className="text-xs uppercase tracking-[0.28em] text-mir-gold">Promoções</p>
                   <h3 className="mt-2 font-display text-3xl text-white">
-                    {editingPromotion ? "Editar promocao" : "Criar promocao"}
+                    {editingPromotion ?"Editar promoção" : "Criar promoção"}
                   </h3>
                 </div>
                 {editingPromotion && (
@@ -306,12 +306,12 @@ export function AdminPanel({
               <form onSubmit={handlePromotionSubmit} className="grid gap-4">
                 <label className="block">
                   <span className="mb-2 block text-xs uppercase tracking-[0.22em] text-mir-gold/75">
-                    Nome da promocao
+                    Nome da promoção
                   </span>
                   <input
                     value={promotionForm.name}
                     onChange={(event) => updatePromotion("name", event.target.value)}
-                    placeholder="Ex.: Promocoes da Semana"
+                    placeholder="Ex.: Promoções da Semana"
                     className="h-12 w-full rounded-sm border border-white/10 bg-white/[0.04] px-4 text-sm text-white outline-none placeholder:text-mir-silver/38 focus:border-mir-gold/60"
                   />
                 </label>
@@ -319,7 +319,7 @@ export function AdminPanel({
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
                     <span className="mb-2 block text-xs uppercase tracking-[0.22em] text-mir-gold/75">
-                      Preco promocional
+                      Preço promocional
                     </span>
                     <input
                       type="number"
@@ -386,7 +386,7 @@ export function AdminPanel({
                     onChange={(event) => updatePromotion("active", event.target.checked)}
                     className="accent-mir-gold"
                   />
-                  Promocao ativa
+                  Promoção ativa
                 </label>
 
                 <div>
@@ -407,7 +407,7 @@ export function AdminPanel({
                           key={product.id}
                           className={`grid cursor-pointer grid-cols-[3.5rem_1fr_auto] items-center gap-3 rounded-sm border p-2 transition ${
                             checked
-                              ? "border-mir-gold/45 bg-mir-gold/[0.08]"
+                              ?"border-mir-gold/45 bg-mir-gold/[0.08]"
                               : "border-white/10 bg-white/[0.03] hover:border-mir-gold/30"
                           }`}
                         >
@@ -422,7 +422,7 @@ export function AdminPanel({
                             </span>
                             <span className="block text-xs text-mir-silver/50">
                               {formatCurrency(product.price)}
-                              {checked && previewPrice < Number(product.price) ? ` -> ${formatCurrency(previewPrice)}` : ""}
+                              {checked && previewPrice < Number(product.price) ?` -> ${formatCurrency(previewPrice)}` : ""}
                             </span>
                           </span>
                           <input
@@ -442,8 +442,8 @@ export function AdminPanel({
                   disabled={!promotionForm.productIds.length || saving}
                   className="inline-flex min-h-12 items-center justify-center gap-3 rounded-sm bg-mir-gold px-5 text-sm font-semibold uppercase tracking-[0.18em] text-mir-black transition hover:bg-[#dfbd6a] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-mir-silver/35"
                 >
-                  {editingPromotion ? <Save size={17} /> : <Tag size={17} />}
-                  {saving ? "Salvando..." : editingPromotion ? "Salvar promocao" : "Criar promocao"}
+                  {editingPromotion ?<Save size={17} /> : <Tag size={17} />}
+                  {saving ?"Salvando..." : editingPromotion ?"Salvar promoção" : "Criar promoção"}
                 </button>
               </form>
             </div>
@@ -451,7 +451,7 @@ export function AdminPanel({
             <form onSubmit={handleSubmit} className="rounded-sm surface p-5 sm:p-7">
               <div className="mb-6 flex items-center justify-between gap-4">
                 <h3 className="font-display text-3xl text-white">
-                  {editingProduct ? "Editar produto" : "Cadastrar produto real"}
+                  {editingProduct ?"Editar produto" : "Cadastrar produto real"}
                 </h3>
                 {editingProduct && (
                   <button
@@ -497,7 +497,7 @@ export function AdminPanel({
                   </label>
                   <label className="block">
                     <span className="mb-2 block text-xs uppercase tracking-[0.22em] text-mir-gold/75">
-                      Preco
+                      Preço
                     </span>
                     <input
                       required
@@ -514,7 +514,7 @@ export function AdminPanel({
 
                 <label className="block">
                   <span className="mb-2 block text-xs uppercase tracking-[0.22em] text-mir-gold/75">
-                    Descricao
+                    Descrição
                   </span>
                   <textarea
                     required
@@ -528,7 +528,7 @@ export function AdminPanel({
 
                 <label className="block">
                   <span className="mb-2 block text-xs uppercase tracking-[0.22em] text-mir-gold/75">
-                    Quantidade disponivel
+                    Quantidade disponível
                   </span>
                   <input
                     required
@@ -596,8 +596,8 @@ export function AdminPanel({
                   disabled={saving}
                   className="mt-2 inline-flex min-h-12 items-center justify-center gap-3 rounded-sm bg-mir-gold px-5 text-sm font-semibold uppercase tracking-[0.18em] text-mir-black transition hover:bg-[#dfbd6a] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-mir-silver/35"
                 >
-                  {editingProduct ? <Save size={17} /> : <Plus size={17} />}
-                  {saving ? "Salvando..." : editingProduct ? "Salvar alteracoes" : "Adicionar produto"}
+                  {editingProduct ?<Save size={17} /> : <Plus size={17} />}
+                  {saving ?"Salvando..." : editingProduct ?"Salvar alterações" : "Adicionar produto"}
                 </button>
               </div>
             </form>
@@ -606,13 +606,13 @@ export function AdminPanel({
           <div className="grid gap-6">
             <div className="rounded-sm surface p-5 sm:p-7">
               <div className="flex items-center justify-between gap-4">
-                <h3 className="font-display text-3xl text-white">Promocoes cadastradas</h3>
+                <h3 className="font-display text-3xl text-white">Promoções cadastradas</h3>
                 <CalendarDays size={18} className="hidden text-mir-gold sm:block" />
               </div>
               <div className="mt-6 grid max-h-[28rem] gap-3 overflow-y-auto pr-1 scrollbar-soft">
-                {promotions.length === 0 ? (
+                {promotions.length === 0 ?(
                   <div className="rounded-sm border border-white/10 bg-white/[0.03] p-6 text-sm leading-7 text-mir-silver/60">
-                    Nenhuma promocao cadastrada ainda.
+                    Nenhuma promoção cadastrada ainda.
                   </div>
                 ) : (
                   promotions.map((promotion) => {
@@ -628,16 +628,16 @@ export function AdminPanel({
                               <span
                                 className={`border px-2 py-1 text-[0.65rem] uppercase tracking-[0.16em] ${
                                   promotion.active
-                                    ? "border-mir-gold/35 text-mir-gold"
+                                    ?"border-mir-gold/35 text-mir-gold"
                                     : "border-white/10 text-mir-silver/35"
                                 }`}
                               >
-                                {promotion.active ? "Ativa" : "Inativa"}
+                                {promotion.active ?"Ativa" : "Inativa"}
                               </span>
                             </div>
                             <p className="mt-2 text-sm text-mir-silver/55">
                               {promotion.promotionalPrice
-                                ? `Preco: ${formatCurrency(promotion.promotionalPrice)}`
+                                ?`Preço: ${formatCurrency(promotion.promotionalPrice)}`
                                 : `${promotion.discountPercent || 0}% de desconto`}
                             </p>
                             <p className="mt-1 text-xs uppercase tracking-[0.16em] text-mir-silver/38">
@@ -649,7 +649,7 @@ export function AdminPanel({
                               type="button"
                               onClick={() => togglePromotionActive(promotion.id)}
                               className="grid h-9 w-9 place-items-center rounded-sm border border-white/10 text-mir-silver hover:border-mir-gold/50 hover:text-mir-gold"
-                              title={promotion.active ? "Desativar" : "Ativar"}
+                              title={promotion.active ?"Desativar" : "Ativar"}
                             >
                               <Tag size={15} />
                             </button>
@@ -678,7 +678,7 @@ export function AdminPanel({
                               type="button"
                               onClick={() => removeProductFromPromotion(promotion.id, product.id)}
                               className="inline-flex items-center gap-2 rounded-sm border border-mir-gold/20 bg-mir-gold/[0.07] px-3 py-2 text-xs text-mir-gold transition hover:border-mir-gold/50"
-                              title="Remover produto da promocao"
+                              title="Remover produto da promoção"
                             >
                               {product.name}
                               <Trash2 size={12} />
@@ -720,7 +720,7 @@ export function AdminPanel({
                           </p>
                           <p
                             className={`mt-1 text-xs uppercase tracking-[0.18em] ${
-                              isProductUnavailable(product) ? "text-mir-silver/38" : "text-mir-gold/70"
+                              isProductUnavailable(product) ?"text-mir-silver/38" : "text-mir-gold/70"
                             }`}
                           >
                             {getStockLabel(product)}

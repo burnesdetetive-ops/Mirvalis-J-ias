@@ -8,7 +8,7 @@ export const sharedCatalogEnabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 function normalizeNumber(value, fallback = 0) {
   const number = Number(value);
-  return Number.isFinite(number) ? number : fallback;
+  return Number.isFinite(number) ?number : fallback;
 }
 
 function normalizeImages(value) {
@@ -17,9 +17,16 @@ function normalizeImages(value) {
   return [];
 }
 
+function normalizeCategory(row) {
+  if (row.id === "piercing-prata-delicado" || /piercing/i.test(row.name || "")) {
+    return "piercings";
+  }
+  return row.category;
+}
+
 async function supabaseRequest(path, options = {}) {
   if (!sharedCatalogEnabled) {
-    throw new Error("Supabase nao configurado");
+    throw new Error("Supabase não configurado");
   }
 
   const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
@@ -39,16 +46,16 @@ async function supabaseRequest(path, options = {}) {
 
   if (response.status === 204) return null;
   const text = await response.text();
-  return text ? JSON.parse(text) : null;
+  return text ?JSON.parse(text) : null;
 }
 
 function productFromRow(row) {
   return {
     id: row.id,
     name: row.name,
-    category: row.category,
+    category: normalizeCategory(row),
     price: normalizeNumber(row.price),
-    promotionalPrice: row.promotional_price ? normalizeNumber(row.promotional_price) : "",
+    promotionalPrice: row.promotional_price ?normalizeNumber(row.promotional_price) : "",
     promotionActive: Boolean(row.promotion_active),
     stock: normalizeNumber(row.available_quantity),
     featured: Boolean(row.featured),
@@ -64,7 +71,7 @@ function productToRow(product) {
     name: product.name,
     category: product.category,
     price: normalizeNumber(product.price),
-    promotional_price: product.promotionalPrice ? normalizeNumber(product.promotionalPrice) : null,
+    promotional_price: product.promotionalPrice ?normalizeNumber(product.promotionalPrice) : null,
     promotion_active: Boolean(product.promotionActive),
     featured: Boolean(product.featured),
     description: product.description || "",
@@ -78,11 +85,11 @@ function productToRow(product) {
 function promotionFromRow(row) {
   return {
     id: row.id,
-    name: row.name || "Promocao MIRVALIS",
+    name: row.name || "Promoção MIRVALIS",
     active: Boolean(row.active),
-    productIds: Array.isArray(row.product_ids) ? row.product_ids : [],
-    promotionalPrice: row.promotional_price ? normalizeNumber(row.promotional_price) : "",
-    discountPercent: row.discount_percent ? normalizeNumber(row.discount_percent) : "",
+    productIds: Array.isArray(row.product_ids) ?row.product_ids : [],
+    promotionalPrice: row.promotional_price ?normalizeNumber(row.promotional_price) : "",
+    discountPercent: row.discount_percent ?normalizeNumber(row.discount_percent) : "",
     startDate: row.start_date || "",
     endDate: row.end_date || ""
   };
@@ -91,11 +98,11 @@ function promotionFromRow(row) {
 function promotionToRow(promotion) {
   return {
     id: promotion.id,
-    name: promotion.name || "Promocao MIRVALIS",
+    name: promotion.name || "Promoção MIRVALIS",
     active: Boolean(promotion.active),
-    product_ids: Array.isArray(promotion.productIds) ? promotion.productIds : [],
-    promotional_price: promotion.promotionalPrice ? normalizeNumber(promotion.promotionalPrice) : null,
-    discount_percent: promotion.discountPercent ? normalizeNumber(promotion.discountPercent) : null,
+    product_ids: Array.isArray(promotion.productIds) ?promotion.productIds : [],
+    promotional_price: promotion.promotionalPrice ?normalizeNumber(promotion.promotionalPrice) : null,
+    discount_percent: promotion.discountPercent ?normalizeNumber(promotion.discountPercent) : null,
     start_date: promotion.startDate || null,
     end_date: promotion.endDate || null,
     updated_at: new Date().toISOString()

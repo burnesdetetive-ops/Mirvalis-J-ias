@@ -16,7 +16,7 @@ create table if not exists public.mirvalis_products (
 
 create table if not exists public.mirvalis_promotions (
   id text primary key,
-  name text not null default 'Promocao MIRVALIS',
+  name text not null default 'Promoção MIRVALIS',
   active boolean not null default true,
   product_ids jsonb not null default '[]'::jsonb,
   promotional_price numeric(10, 2),
@@ -29,6 +29,13 @@ create table if not exists public.mirvalis_promotions (
 
 alter table public.mirvalis_products enable row level security;
 alter table public.mirvalis_promotions enable row level security;
+
+grant usage on schema public to anon;
+grant select, insert, update, delete on public.mirvalis_products to anon;
+grant select, insert, update, delete on public.mirvalis_promotions to anon;
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.mirvalis_products to authenticated;
+grant select, insert, update, delete on public.mirvalis_promotions to authenticated;
 
 drop policy if exists "Public can read Mirvalis products" on public.mirvalis_products;
 drop policy if exists "Public can read Mirvalis promotions" on public.mirvalis_promotions;

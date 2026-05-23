@@ -8,7 +8,7 @@ Web app responsivo premium para vitrine e venda assistida de joias femininas em 
 - Tailwind CSS
 - Framer Motion
 - Lucide React
-- Supabase para catalogo compartilhado
+- Supabase para catálogo compartilhado
 - LocalStorage apenas para carrinho e fallback local
 
 ## Rodar localmente
@@ -22,7 +22,7 @@ Depois acesse a URL exibida no terminal, normalmente `http://localhost:5173`.
 
 ## Banco de dados compartilhado
 
-O catalogo publico e o painel admin usam Supabase quando estas variaveis existem:
+O catálogo público e o painel admin usam Supabase quando estas variáveis existem:
 
 ```bash
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
@@ -45,7 +45,7 @@ Sem essas variaveis, o site entra em modo local e as mudancas ficam apenas no na
 
 ## WhatsApp
 
-O numero inicial esta em `src/lib/whatsapp.js`, mas a loja tambem pode alterar o WhatsApp pelo painel administrativo.
+O número inicial está em `src/lib/whatsapp.js`, mas a loja também pode alterar o WhatsApp pelo painel administrativo.
 
 ```js
 export const MIRVALIS_WHATSAPP = "32998107950";
@@ -65,14 +65,14 @@ Ele permite:
 - adicionar produto;
 - editar produto;
 - remover produto;
-- alterar preco;
-- cadastrar quantidade disponivel;
+- alterar preço;
+- cadastrar quantidade disponível;
 - marcar como destaque;
 - marcar como esgotado;
 - enviar imagens pelo navegador;
-- configurar o numero do WhatsApp da loja;
-- criar, editar e ativar promocoes.
+- configurar o número do WhatsApp da loja;
+- criar, editar e ativar promoções.
 
-As alteracoes de catalogo sao salvas no Supabase quando configurado, e passam a aparecer para qualquer visitante em outro celular ou computador.
+As alterações de catálogo são salvas no Supabase quando configurado, e passam a aparecer para qualquer visitante em outro celular ou computador.
 
 Esta protecao ainda e client-side. Para operacao comercial com dados sensiveis, troque as policies de escrita anonima por Supabase Auth ou por uma API privada.

@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { Logo } from "./Logo";
 
 const navItems = [
-  { id: "inicio", label: "Inicio" },
-  { id: "promocoes", label: "Promocoes" },
+  { id: "inicio", label: "Início" },
+  { id: "promocoes", label: "Promoções" },
   { id: "destaques", label: "Destaques" },
-  { id: "catalogo", label: "Catalogo" }
+  { id: "catalogo", label: "Catálogo" }
 ];
 
 export function Header({ cartCount, onNavigate, onOpenCart }) {
@@ -26,7 +26,7 @@ export function Header({ cartCount, onNavigate, onOpenCart }) {
           type="button"
           onClick={() => handleNavigate("inicio")}
           className="flex min-w-0 shrink-0 items-center text-left"
-          aria-label="Ir para o inicio"
+          aria-label="Ir para o início"
         >
           <Logo />
         </button>
@@ -75,7 +75,7 @@ export function Header({ cartCount, onNavigate, onOpenCart }) {
             aria-label="Abrir menu"
             title="Menu"
           >
-            {open ? <X size={19} /> : <Menu size={19} />}
+            {open ?<X size={19} /> : <Menu size={19} />}
           </button>
         </div>
       </div>

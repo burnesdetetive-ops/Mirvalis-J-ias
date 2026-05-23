@@ -81,7 +81,7 @@ export function Catalog({
             onClick={() => setSelectedCategory("todos")}
             className={`min-h-10 whitespace-nowrap rounded-sm border px-4 text-xs font-semibold uppercase tracking-[0.18em] transition ${
               selectedCategory === "todos"
-                ? "border-mir-gold bg-mir-gold text-mir-black"
+                ?"border-mir-gold bg-mir-gold text-mir-black"
                 : "border-white/10 text-mir-silver hover:border-mir-gold/50 hover:text-mir-gold"
             }`}
           >
@@ -94,7 +94,7 @@ export function Catalog({
               onClick={() => setSelectedCategory(category.id)}
               className={`min-h-10 whitespace-nowrap rounded-sm border px-4 text-xs font-semibold uppercase tracking-[0.18em] transition ${
                 selectedCategory === category.id
-                  ? "border-mir-gold bg-mir-gold text-mir-black"
+                  ?"border-mir-gold bg-mir-gold text-mir-black"
                   : "border-white/10 text-mir-silver hover:border-mir-gold/50 hover:text-mir-gold"
               }`}
             >

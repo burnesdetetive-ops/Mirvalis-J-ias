@@ -41,7 +41,7 @@ export function AdminLogin({ onLogin }) {
             <LockKeyhole size={20} />
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.32em] text-mir-gold">Area privada</p>
+            <p className="text-xs uppercase tracking-[0.32em] text-mir-gold">Área privada</p>
             <h1 className="mt-2 font-display text-4xl font-semibold text-white">Admin MIRVALIS</h1>
           </div>
         </div>
@@ -68,7 +68,7 @@ export function AdminLogin({ onLogin }) {
               <input
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                type={showPassword ? "text" : "password"}
+                type={showPassword ?"text" : "password"}
                 autoComplete="current-password"
                 className="min-w-0 bg-transparent px-4 text-sm text-white outline-none placeholder:text-mir-silver/38"
                 placeholder="Senha"
@@ -77,10 +77,10 @@ export function AdminLogin({ onLogin }) {
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
                 className="grid h-12 w-12 place-items-center text-mir-silver/62 transition hover:text-mir-gold"
-                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                title={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                aria-label={showPassword ?"Ocultar senha" : "Mostrar senha"}
+                title={showPassword ?"Ocultar senha" : "Mostrar senha"}
               >
-                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                {showPassword ?<EyeOff size={17} /> : <Eye size={17} />}
               </button>
             </div>
           </label>

@@ -14,7 +14,7 @@ export function CartDrawer({
   onDecrement,
   onRemove
 }) {
-  const checkoutUrl = items.length ? buildWhatsAppUrl({ items, total, phone: whatsappNumber }) : undefined;
+  const checkoutUrl = items.length ?buildWhatsAppUrl({ items, total, phone: whatsappNumber }) : undefined;
 
   return (
     <AnimatePresence>
@@ -51,7 +51,7 @@ export function CartDrawer({
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 scrollbar-soft">
-              {items.length === 0 ? (
+              {items.length === 0 ?(
                 <div className="grid h-full place-items-center text-center">
                   <div>
                     <ShoppingBag className="mx-auto text-mir-gold" size={34} />
@@ -80,7 +80,7 @@ export function CartDrawer({
                             <h3 className="font-display text-xl text-white">{item.name}</h3>
                             {item.promotion && (
                               <p className="mt-1 text-xs uppercase tracking-[0.16em] text-mir-gold">
-                                Promocao
+                                Promoção
                               </p>
                             )}
                             {item.promotion && (
@@ -92,7 +92,7 @@ export function CartDrawer({
                               {formatCurrency(item.price)}
                             </p>
                             <p className="mt-1 text-xs uppercase tracking-[0.18em] text-mir-silver/38">
-                              {unavailable ? "Esgotado" : `${stock} em estoque`}
+                              {unavailable ?"Esgotado" : `${stock} em estoque`}
                             </p>
                           </div>
                           <button
@@ -157,7 +157,7 @@ export function CartDrawer({
                 aria-disabled={!items.length}
                 className={`mt-5 inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-sm text-sm font-semibold uppercase tracking-[0.18em] transition ${
                   items.length
-                    ? "bg-mir-gold text-mir-black hover:bg-[#dfbd6a]"
+                    ?"bg-mir-gold text-mir-black hover:bg-[#dfbd6a]"
                     : "pointer-events-none bg-white/10 text-mir-silver/30"
                 }`}
               >

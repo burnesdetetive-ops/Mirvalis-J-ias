@@ -13,13 +13,13 @@ export function PromotionsSection({ products, onAdd, onView, whatsappNumber, onS
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 border border-mir-gold/20 bg-mir-gold/[0.08] px-3 py-2 text-xs uppercase tracking-[0.24em] text-mir-gold">
               <Sparkles size={14} />
-              Promocoes da Semana
+              Promoções da Semana
             </div>
             <h2 className="mt-5 font-display text-4xl font-semibold text-white sm:text-6xl">
               Brilho especial por tempo limitado
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-7 text-mir-silver/62 sm:text-base">
-              Pecas selecionadas com condicoes especiais, mantendo a curadoria delicada da MIRVALIS.
+              Peças selecionadas com condições especiais, mantendo a curadoria delicada da MIRVALIS.
             </p>
           </div>
 
@@ -28,12 +28,12 @@ export function PromotionsSection({ products, onAdd, onView, whatsappNumber, onS
             onClick={onSeeAll}
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-mir-gold/35 px-4 text-xs font-semibold uppercase tracking-[0.16em] text-mir-gold transition hover:bg-mir-gold hover:text-mir-black"
           >
-            Ver catalogo
+            Ver catálogo
             <ArrowRight size={16} />
           </button>
         </div>
 
-        {products.length > 0 ? (
+        {products.length > 0 ?(
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {products.map((product) => (
               <ProductCard
@@ -47,7 +47,7 @@ export function PromotionsSection({ products, onAdd, onView, whatsappNumber, onS
           </div>
         ) : (
           <div className="mt-10 rounded-sm border border-white/10 bg-white/[0.03] p-6 text-sm leading-7 text-mir-silver/60 sm:p-8">
-            As ofertas aparecem aqui assim que voce ativar uma promocao no painel admin.
+            As ofertas aparecem aqui assim que você ativar uma promoção no painel admin.
           </div>
         )}
       </div>

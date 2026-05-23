@@ -11,7 +11,7 @@ export const emptyPromotion = {
 function toDateOnly(value, fallback) {
   if (!value) return fallback;
   const date = new Date(`${value}T12:00:00`);
-  return Number.isNaN(date.getTime()) ? fallback : date;
+  return Number.isNaN(date.getTime()) ?fallback : date;
 }
 
 export function isPromotionLive(promotion, now = new Date()) {
@@ -50,7 +50,7 @@ export function getPromotionDiscount(product, promoPrice, promotion) {
 export function resolveProductPromotion(product, promotions) {
   const matches = (promotions || [])
     .filter((promotion) => {
-      const productIds = Array.isArray(promotion.productIds) ? promotion.productIds : [];
+      const productIds = Array.isArray(promotion.productIds) ?promotion.productIds : [];
       return productIds.includes(product.id) && isPromotionLive(promotion);
     })
     .map((promotion) => {

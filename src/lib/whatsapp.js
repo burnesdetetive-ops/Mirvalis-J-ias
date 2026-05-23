@@ -8,16 +8,16 @@ export function sanitizeWhatsAppNumber(value) {
 
 function getProductLines(product) {
   const lines = [
-    "Ola, MIRVALIS. Tenho interesse nesta joia:",
+    "Olá, MIRVALIS. Tenho interesse nesta joia:",
     "",
     `Produto: ${product.name}`
   ];
 
   if (product.promotion) {
-    lines.push(`Preco promocional: ${formatCurrency(product.price)}`);
-    lines.push(`Preco original: ${formatCurrency(product.originalPrice)}`);
+    lines.push(`Preço promocional: ${formatCurrency(product.price)}`);
+    lines.push(`Preço original: ${formatCurrency(product.originalPrice)}`);
   } else {
-    lines.push(`Preco: ${formatCurrency(product.price)}`);
+    lines.push(`Preço: ${formatCurrency(product.price)}`);
   }
 
   return lines;
@@ -25,11 +25,11 @@ function getProductLines(product) {
 
 function getCartLines(items, total) {
   return [
-    "Ola, MIRVALIS. Gostaria de finalizar meu pedido:",
+    "Olá, MIRVALIS. Gostaria de finalizar meu pedido:",
     "",
     ...items.map((item) => {
       const priceLabel = item.promotion
-        ? `${formatCurrency(item.price * item.quantity)} promocional`
+        ?`${formatCurrency(item.price * item.quantity)} promocional`
         : formatCurrency(item.price * item.quantity);
       return `- ${item.name} | qtd. ${item.quantity} | ${priceLabel}`;
     }),
@@ -41,10 +41,10 @@ function getCartLines(items, total) {
 export function buildWhatsAppUrl({ items, total, product, phone }) {
   const safeItems = items || [];
   const lines = product
-    ? getProductLines(product)
+    ?getProductLines(product)
     : safeItems.length
-      ? getCartLines(safeItems, total)
-      : ["Ola, MIRVALIS. Gostaria de atendimento para conhecer as joias disponiveis."];
+      ?getCartLines(safeItems, total)
+      : ["Olá, MIRVALIS. Gostaria de atendimento para conhecer as joias disponíveis."];
 
   return `https://api.whatsapp.com/send?phone=${sanitizeWhatsAppNumber(phone)}&text=${encodeURIComponent(lines.join("\n"))}`;
 }

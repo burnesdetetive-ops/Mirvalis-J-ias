@@ -1,11 +1,13 @@
-export const CATALOG_VERSION = "mirvalis-catalog-2026-05-21-real-photos";
+export const CATALOG_VERSION = "mirvalis-catalog-2026-05-23-categorias-textos";
 
 export const categories = [
   { id: "aneis", label: "Anéis" },
   { id: "colares", label: "Colares" },
   { id: "pulseiras", label: "Pulseiras" },
   { id: "brincos", label: "Brincos" },
-  { id: "conjuntos", label: "Conjuntos" }
+  { id: "conjuntos", label: "Conjuntos" },
+  { id: "tornozeleiras", label: "Tornozeleiras" },
+  { id: "piercings", label: "Piercings" }
 ];
 
 export function getCategoryLabel(categoryId) {
@@ -76,7 +78,7 @@ export const initialProducts = [
   {
     id: "piercing-prata-delicado",
     name: "Piercing Prata Delicado",
-    category: "brincos",
+    category: "piercings",
     price: 89.9,
     stock: 7,
     featured: false,

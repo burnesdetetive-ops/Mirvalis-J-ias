@@ -8,10 +8,10 @@ import { buildWhatsAppUrl, openWhatsAppUrl } from "../lib/whatsapp";
 
 export function ProductModal({ product, whatsappNumber, onClose, onAdd }) {
   const [imageIndex, setImageIndex] = useState(0);
-  const unavailable = product ? isProductUnavailable(product) : false;
+  const unavailable = product ?isProductUnavailable(product) : false;
   const promotion = product?.promotion;
   const whatsappUrl =
-    product && !unavailable ? buildWhatsAppUrl({ product, phone: whatsappNumber }) : undefined;
+    product && !unavailable ?buildWhatsAppUrl({ product, phone: whatsappNumber }) : undefined;
 
   useEffect(() => {
     setImageIndex(0);
@@ -61,7 +61,7 @@ export function ProductModal({ product, whatsappNumber, onClose, onAdd }) {
                       type="button"
                       onClick={() => setImageIndex(index)}
                       className={`aspect-square overflow-hidden rounded-sm border transition ${
-                        index === imageIndex ? "border-mir-gold" : "border-white/10"
+                        index === imageIndex ?"border-mir-gold" : "border-white/10"
                       }`}
                     >
                       <img src={image} alt="" className="h-full w-full object-cover" />
@@ -80,7 +80,7 @@ export function ProductModal({ product, whatsappNumber, onClose, onAdd }) {
                 <div className="mt-5">
                   {promotion && (
                     <div className="mb-3 inline-flex border border-mir-gold/25 bg-mir-gold/[0.08] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-mir-gold">
-                      Promocao {promotion.discountPercent > 0 ? `${promotion.discountPercent}% OFF` : ""}
+                      Promoção {promotion.discountPercent > 0 ?`${promotion.discountPercent}% OFF` : ""}
                     </div>
                   )}
                   {promotion && (
@@ -88,7 +88,7 @@ export function ProductModal({ product, whatsappNumber, onClose, onAdd }) {
                       {formatCurrency(product.originalPrice)}
                     </p>
                   )}
-                  <p className={`text-3xl font-semibold ${promotion ? "text-mir-gold" : "text-mir-silver"}`}>
+                  <p className={`text-3xl font-semibold ${promotion ?"text-mir-gold" : "text-mir-silver"}`}>
                     {formatCurrency(product.price)}
                   </p>
                 </div>
@@ -104,8 +104,8 @@ export function ProductModal({ product, whatsappNumber, onClose, onAdd }) {
                     disabled={unavailable}
                     className="inline-flex min-h-12 items-center justify-center gap-3 rounded-sm bg-mir-gold px-5 text-sm font-semibold uppercase tracking-[0.18em] text-mir-black transition hover:bg-[#dfbd6a] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-mir-silver/35"
                   >
-                    {unavailable ? <Minus size={17} /> : <ShoppingBag size={17} />}
-                    {unavailable ? "Esgotado" : "Adicionar"}
+                    {unavailable ?<Minus size={17} /> : <ShoppingBag size={17} />}
+                    {unavailable ?"Esgotado" : "Adicionar"}
                   </button>
                   <a
                     href={whatsappUrl}
@@ -119,7 +119,7 @@ export function ProductModal({ product, whatsappNumber, onClose, onAdd }) {
                     aria-disabled={unavailable}
                     className={`inline-flex min-h-12 items-center justify-center gap-3 rounded-sm border px-5 text-sm font-semibold uppercase tracking-[0.18em] transition ${
                       unavailable
-                        ? "pointer-events-none border-white/10 text-mir-silver/32"
+                        ?"pointer-events-none border-white/10 text-mir-silver/32"
                         : "border-mir-gold/40 text-mir-gold hover:bg-mir-gold hover:text-mir-black"
                     }`}
                   >

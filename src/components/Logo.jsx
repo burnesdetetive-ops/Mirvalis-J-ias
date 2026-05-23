@@ -14,8 +14,8 @@ export function Logo({ compact = false, watermark = false }) {
   return (
     <img
       src={logoSrc}
-      alt={compact ? "MIRVALIS" : "MIRVALIS Joias na Prata"}
-      className={`shrink-0 object-contain ${compact ? "h-12 w-12 sm:h-14 sm:w-14" : "h-14 w-14 sm:h-16 sm:w-16"}`}
+      alt={compact ?"MIRVALIS" : "MIRVALIS Joias na Prata"}
+      className={`shrink-0 object-contain ${compact ?"h-12 w-12 sm:h-14 sm:w-14" : "h-14 w-14 sm:h-16 sm:w-16"}`}
       draggable="false"
     />
   );

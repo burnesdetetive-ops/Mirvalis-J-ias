@@ -38,7 +38,7 @@ export function Hero({ onShop }) {
           </h1>
           <p className="mt-5 font-display text-3xl text-mir-gold sm:text-4xl">Joias na Prata</p>
           <p className="mt-7 max-w-xl text-base leading-8 text-mir-silver/74 sm:text-lg">
-              Peças femininas em prata para quem prefere brilho contido, desenho delicado e uma
+            Peças femininas em prata para quem prefere brilho contido, desenho delicado e uma
             experiência de compra direta pelo WhatsApp.
           </p>
 

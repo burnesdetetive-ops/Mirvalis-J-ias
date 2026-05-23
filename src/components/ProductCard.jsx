@@ -9,7 +9,7 @@ export function ProductCard({ product, onView, whatsappNumber }) {
   const unavailable = isProductUnavailable(product);
   const promotion = product.promotion;
   const whatsappUrl = unavailable
-    ? undefined
+    ?undefined
     : buildWhatsAppUrl({ product, phone: whatsappNumber });
 
   return (
@@ -38,7 +38,7 @@ export function ProductCard({ product, onView, whatsappNumber }) {
         {promotion && !unavailable && (
           <div className="absolute left-4 top-4 inline-flex items-center gap-2 border border-mir-gold/45 bg-mir-black/78 px-3 py-1 text-xs uppercase tracking-[0.18em] text-mir-gold">
             <Tag size={13} />
-            Promocao
+            Promoção
           </div>
         )}
         {product.featured && !unavailable && !promotion && (
@@ -67,14 +67,14 @@ export function ProductCard({ product, onView, whatsappNumber }) {
                 {formatCurrency(product.originalPrice)}
               </p>
             )}
-            <p className={`whitespace-nowrap text-sm font-semibold ${promotion ? "text-mir-gold" : "text-mir-silver"}`}>
+            <p className={`whitespace-nowrap text-sm font-semibold ${promotion ?"text-mir-gold" : "text-mir-silver"}`}>
               {formatCurrency(product.price)}
             </p>
           </div>
         </div>
         {promotion && (
           <div className="mt-3 inline-flex items-center gap-2 border border-mir-gold/25 bg-mir-gold/[0.08] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-mir-gold">
-            {promotion.discountPercent > 0 ? `${promotion.discountPercent}% OFF` : "Oferta especial"}
+            {promotion.discountPercent > 0 ?`${promotion.discountPercent}% OFF` : "Oferta especial"}
           </div>
         )}
         <p className="mt-3 text-xs uppercase tracking-[0.22em] text-mir-silver/42">
@@ -97,12 +97,12 @@ export function ProductCard({ product, onView, whatsappNumber }) {
             aria-disabled={unavailable}
             className={`inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-sm px-3 text-center text-xs font-semibold uppercase tracking-[0.1em] transition sm:px-4 sm:tracking-[0.14em] ${
               unavailable
-                ? "pointer-events-none border border-white/10 text-mir-silver/35"
+                ?"pointer-events-none border border-white/10 text-mir-silver/35"
                 : "bg-mir-gold text-mir-black hover:bg-[#dfbd6a]"
             }`}
           >
             <Send size={16} />
-            {unavailable ? "Esgotado" : "Comprar pelo WhatsApp"}
+            {unavailable ?"Esgotado" : "Comprar pelo WhatsApp"}
           </a>
           <button
             type="button"
