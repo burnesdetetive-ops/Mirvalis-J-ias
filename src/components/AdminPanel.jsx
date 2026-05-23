@@ -49,9 +49,12 @@ function createSlug(value) {
 
 export function AdminPanel({
   products,
-  setProducts,
   promotions = [],
-  setPromotions,
+  onSaveProduct,
+  onDeleteProduct,
+  onSavePromotion,
+  onDeletePromotion,
+  catalogStatus,
   whatsappNumber,
   setWhatsappNumber,
   onLogout
@@ -60,6 +63,7 @@ export function AdminPanel({
   const [editingId, setEditingId] = useState(null);
   const [promotionForm, setPromotionForm] = useState(emptyPromotion);
   const [editingPromotionId, setEditingPromotionId] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const editingProduct = useMemo(
     () => products.find((product) => product.id === editingId),
@@ -86,7 +90,7 @@ export function AdminPanel({
     setPromotionForm(emptyPromotion);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const normalizedProduct = {
       ...form,
@@ -100,11 +104,9 @@ export function AdminPanel({
           : ["https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=1200&q=82"]
     };
 
-    setProducts((currentProducts) =>
-      editingId
-        ? currentProducts.map((product) => (product.id === editingId ? normalizedProduct : product))
-        : [normalizedProduct, ...currentProducts]
-    );
+    setSaving(true);
+    await onSaveProduct(normalizedProduct, { editing: Boolean(editingId) });
+    setSaving(false);
     resetForm();
   };
 
@@ -124,13 +126,7 @@ export function AdminPanel({
   };
 
   const handleRemove = (id) => {
-    setProducts((currentProducts) => currentProducts.filter((product) => product.id !== id));
-    setPromotions?.((currentPromotions) =>
-      currentPromotions.map((promotion) => ({
-        ...promotion,
-        productIds: (promotion.productIds || []).filter((productId) => productId !== id)
-      }))
-    );
+    onDeleteProduct(id);
     if (editingId === id) resetForm();
   };
 
@@ -157,7 +153,7 @@ export function AdminPanel({
     });
   };
 
-  const handlePromotionSubmit = (event) => {
+  const handlePromotionSubmit = async (event) => {
     event.preventDefault();
     if (!promotionForm.productIds.length) return;
 
@@ -173,13 +169,9 @@ export function AdminPanel({
       endDate: promotionForm.endDate || ""
     };
 
-    setPromotions((currentPromotions) =>
-      editingPromotionId
-        ? currentPromotions.map((promotion) =>
-            promotion.id === editingPromotionId ? normalizedPromotion : promotion
-          )
-        : [normalizedPromotion, ...currentPromotions]
-    );
+    setSaving(true);
+    await onSavePromotion(normalizedPromotion, { editing: Boolean(editingPromotionId) });
+    setSaving(false);
     resetPromotionForm();
   };
 
@@ -198,29 +190,28 @@ export function AdminPanel({
   };
 
   const handlePromotionRemove = (id) => {
-    setPromotions((currentPromotions) => currentPromotions.filter((promotion) => promotion.id !== id));
+    onDeletePromotion(id);
     if (editingPromotionId === id) resetPromotionForm();
   };
 
   const togglePromotionActive = (id) => {
-    setPromotions((currentPromotions) =>
-      currentPromotions.map((promotion) =>
-        promotion.id === id ? { ...promotion, active: !promotion.active } : promotion
-      )
-    );
+    const promotion = promotions.find((currentPromotion) => currentPromotion.id === id);
+    if (promotion) {
+      onSavePromotion({ ...promotion, active: !promotion.active }, { editing: true });
+    }
   };
 
   const removeProductFromPromotion = (promotionId, productId) => {
-    setPromotions((currentPromotions) =>
-      currentPromotions.map((promotion) =>
-        promotion.id === promotionId
-          ? {
-              ...promotion,
-              productIds: (promotion.productIds || []).filter((id) => id !== productId)
-            }
-          : promotion
-      )
-    );
+    const promotion = promotions.find((currentPromotion) => currentPromotion.id === promotionId);
+    if (promotion) {
+      onSavePromotion(
+        {
+          ...promotion,
+          productIds: (promotion.productIds || []).filter((id) => id !== productId)
+        },
+        { editing: true }
+      );
+    }
   };
 
   return (
@@ -238,9 +229,23 @@ export function AdminPanel({
             Administracao simples
           </h2>
           <p className="mt-5 text-base leading-8 text-mir-silver/64">
-            Cadastre produtos reais, ajuste o WhatsApp da loja e gerencie promocoes salvas no
-            navegador.
+            Cadastre produtos reais, ajuste o WhatsApp da loja e gerencie promocoes no catalogo
+            compartilhado.
           </p>
+          <div
+            className={`mt-5 inline-flex max-w-full items-center rounded-sm border px-3 py-2 text-xs uppercase tracking-[0.16em] ${
+              catalogStatus?.shared
+                ? "border-mir-gold/35 text-mir-gold"
+                : "border-white/10 text-mir-silver/45"
+            }`}
+          >
+            {catalogStatus?.shared ? "Banco Supabase conectado" : "Modo local / Supabase pendente"}
+          </div>
+          {catalogStatus?.error && (
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-mir-silver/55">
+              {catalogStatus.error}
+            </p>
+          )}
           <button
             type="button"
             onClick={onLogout}
@@ -434,11 +439,11 @@ export function AdminPanel({
 
                 <button
                   type="submit"
-                  disabled={!promotionForm.productIds.length}
+                  disabled={!promotionForm.productIds.length || saving}
                   className="inline-flex min-h-12 items-center justify-center gap-3 rounded-sm bg-mir-gold px-5 text-sm font-semibold uppercase tracking-[0.18em] text-mir-black transition hover:bg-[#dfbd6a] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-mir-silver/35"
                 >
                   {editingPromotion ? <Save size={17} /> : <Tag size={17} />}
-                  {editingPromotion ? "Salvar promocao" : "Criar promocao"}
+                  {saving ? "Salvando..." : editingPromotion ? "Salvar promocao" : "Criar promocao"}
                 </button>
               </form>
             </div>
@@ -588,10 +593,11 @@ export function AdminPanel({
 
                 <button
                   type="submit"
-                  className="mt-2 inline-flex min-h-12 items-center justify-center gap-3 rounded-sm bg-mir-gold px-5 text-sm font-semibold uppercase tracking-[0.18em] text-mir-black transition hover:bg-[#dfbd6a]"
+                  disabled={saving}
+                  className="mt-2 inline-flex min-h-12 items-center justify-center gap-3 rounded-sm bg-mir-gold px-5 text-sm font-semibold uppercase tracking-[0.18em] text-mir-black transition hover:bg-[#dfbd6a] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-mir-silver/35"
                 >
                   {editingProduct ? <Save size={17} /> : <Plus size={17} />}
-                  {editingProduct ? "Salvar alteracoes" : "Adicionar produto"}
+                  {saving ? "Salvando..." : editingProduct ? "Salvar alteracoes" : "Adicionar produto"}
                 </button>
               </div>
             </form>

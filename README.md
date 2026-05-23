@@ -8,7 +8,8 @@ Web app responsivo premium para vitrine e venda assistida de joias femininas em 
 - Tailwind CSS
 - Framer Motion
 - Lucide React
-- LocalStorage para produtos e carrinho
+- Supabase para catalogo compartilhado
+- LocalStorage apenas para carrinho e fallback local
 
 ## Rodar localmente
 
@@ -19,11 +20,32 @@ npm run dev
 
 Depois acesse a URL exibida no terminal, normalmente `http://localhost:5173`.
 
+## Banco de dados compartilhado
+
+O catalogo publico e o painel admin usam Supabase quando estas variaveis existem:
+
+```bash
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-chave-anon-public
+```
+
+No Supabase, abra o SQL Editor e rode o arquivo:
+
+```txt
+supabase/mirvalis-schema.sql
+```
+
+Depois configure as mesmas variaveis na Vercel em:
+
+```txt
+Project Settings > Environment Variables
+```
+
+Sem essas variaveis, o site entra em modo local e as mudancas ficam apenas no navegador.
+
 ## WhatsApp
 
-O número inicial está em `src/lib/whatsapp.js`, mas a loja também pode alterar o WhatsApp pelo painel administrativo.
-
-Troque `MIRVALIS_WHATSAPP` pelo número real com DDI e DDD, somente dígitos:
+O numero inicial esta em `src/lib/whatsapp.js`, mas a loja tambem pode alterar o WhatsApp pelo painel administrativo.
 
 ```js
 export const MIRVALIS_WHATSAPP = "32998107950";
@@ -43,13 +65,14 @@ Ele permite:
 - adicionar produto;
 - editar produto;
 - remover produto;
-- alterar preço;
-- cadastrar quantidade disponível;
+- alterar preco;
+- cadastrar quantidade disponivel;
 - marcar como destaque;
 - marcar como esgotado;
-- enviar imagens pelo navegador.
-- configurar o número do WhatsApp da loja.
+- enviar imagens pelo navegador;
+- configurar o numero do WhatsApp da loja;
+- criar, editar e ativar promocoes.
 
-As alterações são salvas no LocalStorage do navegador.
+As alteracoes de catalogo sao salvas no Supabase quando configurado, e passam a aparecer para qualquer visitante em outro celular ou computador.
 
-Esta proteção é client-side e serve para protótipo/publicação simples. Para operação comercial com dados sensíveis, use autenticação real com backend e banco de dados.
+Esta protecao ainda e client-side. Para operacao comercial com dados sensiveis, troque as policies de escrita anonima por Supabase Auth ou por uma API privada.

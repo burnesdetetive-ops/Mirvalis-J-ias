@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Gem, MessageCircle, ShieldCheck } from "lucide-react";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
@@ -14,14 +14,60 @@ import { FloatingWhatsApp } from "./components/FloatingWhatsApp";
 import { PromotionsSection } from "./components/PromotionsSection";
 import { CATALOG_VERSION, initialProducts } from "./data/initialProducts";
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import {
+  deleteSharedProduct,
+  deleteSharedPromotion,
+  fetchSharedProducts,
+  fetchSharedPromotions,
+  saveSharedProduct,
+  saveSharedPromotion,
+  seedSharedProducts,
+  sharedCatalogEnabled
+} from "./lib/catalogStore";
 import { getProductStock, isProductUnavailable } from "./lib/product";
 import { applyPromotionsToProducts } from "./lib/promotions";
 import { MIRVALIS_WHATSAPP } from "./lib/whatsapp";
 import { ADMIN_ROUTE } from "./lib/adminAuth";
 
+const LOCAL_PRODUCTS_KEY = "mirvalis-products";
+const LOCAL_PROMOTIONS_KEY = "mirvalis-promotions";
+const LOCAL_CATALOG_VERSION_KEY = "mirvalis-catalog-version";
+
+function readLocalCatalog() {
+  try {
+    if (window.localStorage.getItem(LOCAL_CATALOG_VERSION_KEY) !== CATALOG_VERSION) {
+      window.localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(initialProducts));
+      window.localStorage.setItem(LOCAL_PROMOTIONS_KEY, JSON.stringify([]));
+      window.localStorage.setItem(LOCAL_CATALOG_VERSION_KEY, CATALOG_VERSION);
+      return { products: initialProducts, promotions: [] };
+    }
+
+    return {
+      products: JSON.parse(window.localStorage.getItem(LOCAL_PRODUCTS_KEY) || "null") || initialProducts,
+      promotions: JSON.parse(window.localStorage.getItem(LOCAL_PROMOTIONS_KEY) || "[]")
+    };
+  } catch {
+    return { products: initialProducts, promotions: [] };
+  }
+}
+
+function saveLocalCatalog(products, promotions) {
+  window.localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(products));
+  window.localStorage.setItem(LOCAL_PROMOTIONS_KEY, JSON.stringify(promotions));
+  window.localStorage.setItem(LOCAL_CATALOG_VERSION_KEY, CATALOG_VERSION);
+}
+
 function App() {
-  const [products, setProducts] = useLocalStorage("mirvalis-products", initialProducts);
-  const [promotions, setPromotions] = useLocalStorage("mirvalis-promotions", []);
+  const localCatalog = readLocalCatalog();
+  const [products, setProducts] = useState(localCatalog.products);
+  const [promotions, setPromotions] = useState(localCatalog.promotions);
+  const productsRef = useRef(localCatalog.products);
+  const promotionsRef = useRef(localCatalog.promotions);
+  const [catalogStatus, setCatalogStatus] = useState({
+    loading: sharedCatalogEnabled,
+    error: "",
+    shared: sharedCatalogEnabled
+  });
   const [cartItems, setCartItems] = useLocalStorage("mirvalis-cart", []);
   const [whatsappNumber, setWhatsappNumber] = useLocalStorage(
     "mirvalis-whatsapp",
@@ -38,12 +84,61 @@ function App() {
   );
 
   useEffect(() => {
-    if (window.localStorage.getItem("mirvalis-catalog-version") !== CATALOG_VERSION) {
-      setProducts(initialProducts);
-      setCartItems([]);
-      window.localStorage.setItem("mirvalis-catalog-version", CATALOG_VERSION);
+    productsRef.current = products;
+  }, [products]);
+
+  useEffect(() => {
+    promotionsRef.current = promotions;
+  }, [promotions]);
+
+  const loadCatalog = useCallback(async ({ quiet = false } = {}) => {
+    if (!sharedCatalogEnabled) {
+      const localData = readLocalCatalog();
+      setProducts(localData.products);
+      setPromotions(localData.promotions);
+      setCatalogStatus({
+        loading: false,
+        error: "Supabase nao configurado. Usando dados locais deste navegador.",
+        shared: false
+      });
+      return;
     }
-  }, [setCartItems, setProducts]);
+
+    if (!quiet) {
+      setCatalogStatus((current) => ({ ...current, loading: true, error: "", shared: true }));
+    }
+
+    try {
+      let remoteProducts = await fetchSharedProducts();
+      if (remoteProducts.length === 0) {
+        remoteProducts = await seedSharedProducts(initialProducts);
+      }
+      const remotePromotions = await fetchSharedPromotions();
+      setProducts(remoteProducts);
+      setPromotions(remotePromotions);
+      setCatalogStatus({ loading: false, error: "", shared: true });
+    } catch (error) {
+      const localData = readLocalCatalog();
+      setProducts(localData.products);
+      setPromotions(localData.promotions);
+      setCatalogStatus({
+        loading: false,
+        error: `Nao foi possivel carregar o Supabase. Fallback local ativo: ${error.message}`,
+        shared: false
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCatalog();
+    if (!sharedCatalogEnabled) return undefined;
+
+    const interval = window.setInterval(() => {
+      loadCatalog({ quiet: true });
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [loadCatalog]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -162,6 +257,88 @@ function App() {
     setCartItems((currentItems) => currentItems.filter((item) => item.id !== id));
   };
 
+  const persistLocalSnapshot = (nextProducts = productsRef.current, nextPromotions = promotionsRef.current) => {
+    if (!sharedCatalogEnabled) {
+      saveLocalCatalog(nextProducts, nextPromotions);
+    }
+  };
+
+  const handleSaveProduct = async (product, { editing = false } = {}) => {
+    const nextProducts = editing
+      ? productsRef.current.map((currentProduct) => (currentProduct.id === product.id ? product : currentProduct))
+      : [product, ...productsRef.current];
+
+    setProducts(nextProducts);
+    persistLocalSnapshot(nextProducts);
+
+    if (sharedCatalogEnabled) {
+      try {
+        await saveSharedProduct(product);
+        await loadCatalog({ quiet: true });
+      } catch (error) {
+        setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
+      }
+    }
+  };
+
+  const handleDeleteProduct = async (id) => {
+    const nextProducts = productsRef.current.filter((product) => product.id !== id);
+    const nextPromotions = promotionsRef.current.map((promotion) => ({
+      ...promotion,
+      productIds: (promotion.productIds || []).filter((productId) => productId !== id)
+    }));
+
+    setProducts(nextProducts);
+    setPromotions(nextPromotions);
+    persistLocalSnapshot(nextProducts, nextPromotions);
+
+    if (sharedCatalogEnabled) {
+      try {
+        await deleteSharedProduct(id);
+        await Promise.all(nextPromotions.map((promotion) => saveSharedPromotion(promotion)));
+        await loadCatalog({ quiet: true });
+      } catch (error) {
+        setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
+      }
+    }
+  };
+
+  const handleSavePromotion = async (promotion, { editing = false } = {}) => {
+    const nextPromotions = editing
+      ? promotionsRef.current.map((currentPromotion) =>
+          currentPromotion.id === promotion.id ? promotion : currentPromotion
+        )
+      : [promotion, ...promotionsRef.current];
+
+    setPromotions(nextPromotions);
+    persistLocalSnapshot(productsRef.current, nextPromotions);
+
+    if (sharedCatalogEnabled) {
+      try {
+        await saveSharedPromotion(promotion);
+        await loadCatalog({ quiet: true });
+      } catch (error) {
+        setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
+      }
+    }
+  };
+
+  const handleDeletePromotion = async (id) => {
+    const nextPromotions = promotionsRef.current.filter((promotion) => promotion.id !== id);
+
+    setPromotions(nextPromotions);
+    persistLocalSnapshot(productsRef.current, nextPromotions);
+
+    if (sharedCatalogEnabled) {
+      try {
+        await deleteSharedPromotion(id);
+        await loadCatalog({ quiet: true });
+      } catch (error) {
+        setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
+      }
+    }
+  };
+
   const handleAdminLogin = () => {
     window.sessionStorage.setItem("mirvalis-admin-auth", "true");
     setAdminAuthenticated(true);
@@ -178,9 +355,12 @@ function App() {
     adminAuthenticated ? (
       <AdminPanel
         products={normalizedProducts}
-        setProducts={setProducts}
         promotions={promotions}
-        setPromotions={setPromotions}
+        onSaveProduct={handleSaveProduct}
+        onDeleteProduct={handleDeleteProduct}
+        onSavePromotion={handleSavePromotion}
+        onDeletePromotion={handleDeletePromotion}
+        catalogStatus={catalogStatus}
         whatsappNumber={whatsappNumber}
         setWhatsappNumber={setWhatsappNumber}
         onLogout={handleAdminLogout}
