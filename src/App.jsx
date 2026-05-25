@@ -89,8 +89,12 @@ function App() {
       const remotePromotions = await fetchSharedPromotions();
       setProducts(remoteProducts);
       setPromotions(remotePromotions);
-      hydrateSharedProductImages(remoteProducts).then((productsWithImages) => {
-        setProducts(productsWithImages);
+      hydrateSharedProductImages(remoteProducts, (productId, images) => {
+        setProducts((currentProducts) =>
+          currentProducts.map((product) =>
+            product.id === productId ?{ ...product, images } : product
+          )
+        );
       });
       setCatalogStatus({
         loading: false,

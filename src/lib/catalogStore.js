@@ -8,7 +8,7 @@ const REQUEST_TIMEOUT_MS = 12000;
 const LEGACY_PRODUCTS_KEY = "mirvalis-products";
 const LEGACY_PROMOTIONS_KEY = "mirvalis-promotions";
 const LEGACY_MIGRATION_KEY = "mirvalis-supabase-migration-v1";
-const FALLBACK_PRODUCT_IMAGE = "/mirvalis-logo.jpeg";
+const FALLBACK_PRODUCT_IMAGE = "";
 
 export const sharedCatalogEnabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
@@ -151,17 +151,19 @@ async function supabaseRequest(path, options = {}) {
   }
 
   const controller = new AbortController();
-  const timeout = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeoutMs = options.timeoutMs || REQUEST_TIMEOUT_MS;
+  const { timeoutMs: _timeoutMs, ...requestOptions } = options;
+  const timeout = globalThis.setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-      ...options,
+      ...requestOptions,
       signal: controller.signal,
       headers: {
         apikey: SUPABASE_ANON_KEY,
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         "Content-Type": "application/json",
-        ...(options.headers || {})
+        ...(requestOptions.headers || {})
       }
     });
 
@@ -191,7 +193,8 @@ async function fetchProductsFromTable(tableName) {
 
 async function fetchProductImage(tableName, id) {
   const rows = await supabaseRequest(
-    `${tableName}?select=id,images&id=eq.${encodeURIComponent(id)}&limit=1`
+    `${tableName}?select=id,images&id=eq.${encodeURIComponent(id)}&limit=1`,
+    { timeoutMs: 45000 }
   );
   return {
     id,
@@ -312,20 +315,24 @@ export async function fetchSharedProducts() {
   return dedupeById(results);
 }
 
-export async function hydrateSharedProductImages(products) {
+export async function hydrateSharedProductImages(products, onProductImages) {
   if (!products.length) return products;
 
   const tableName = writableProductsTable || (await findWritableProductsTable());
-  const hydrated = await Promise.allSettled(
-    products.map((product) => fetchProductImage(tableName, product.id))
-  );
   const imagesById = new Map();
+  const visibleProductsFirst = products.slice(0, 16);
 
-  hydrated.forEach((result) => {
-    if (result.status === "fulfilled" && result.value.images.length) {
-      imagesById.set(result.value.id, result.value.images);
+  for (const product of visibleProductsFirst) {
+    try {
+      const imageResult = await fetchProductImage(tableName, product.id);
+      if (imageResult.images.length) {
+        imagesById.set(imageResult.id, imageResult.images);
+        onProductImages?.(imageResult.id, imageResult.images);
+      }
+    } catch {
+      // Keep the fallback image if a heavy base64 image times out.
     }
-  });
+  }
 
   return products.map((product) => ({
     ...product,

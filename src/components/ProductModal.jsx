@@ -48,11 +48,17 @@ export function ProductModal({ product, whatsappNumber, onClose, onAdd }) {
             <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
               <div className="p-4 sm:p-6">
                 <div className="aspect-[4/5] overflow-hidden rounded-sm product-image">
-                  <img
-                    src={product.images?.[imageIndex]}
-                    alt={product.name}
-                    className="h-full w-full object-cover"
-                  />
+                  {product.images?.[imageIndex] ?(
+                    <img
+                      src={product.images[imageIndex]}
+                      alt={product.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="grid h-full w-full place-items-center bg-gradient-to-br from-[#111] via-mir-black to-[#1a1710] px-8 text-center">
+                      <span className="font-display text-4xl text-mir-gold/70">MIRVALIS</span>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-3 grid grid-cols-4 gap-3">
                   {product.images?.map((image, index) => (

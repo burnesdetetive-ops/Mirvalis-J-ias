@@ -24,11 +24,17 @@ export function ProductCard({ product, onView, whatsappNumber }) {
         onClick={() => onView(product)}
         className="relative block aspect-[4/5] w-full overflow-hidden product-image text-left"
       >
-        <img
-          src={product.images?.[0]}
-          alt={product.name}
-          className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-        />
+        {product.images?.[0] ?(
+          <img
+            src={product.images[0]}
+            alt={product.name}
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+          />
+        ) : (
+          <div className="grid h-full w-full place-items-center bg-gradient-to-br from-[#111] via-mir-black to-[#1a1710] px-8 text-center">
+            <span className="font-display text-3xl text-mir-gold/70">MIRVALIS</span>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-mir-black/72 via-transparent to-transparent opacity-80" />
         {unavailable && (
           <div className="absolute left-4 top-4 border border-mir-silver/25 bg-mir-black/80 px-3 py-1 text-xs uppercase tracking-[0.22em] text-mir-silver">
