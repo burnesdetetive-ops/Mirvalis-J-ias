@@ -8,6 +8,7 @@ const REQUEST_TIMEOUT_MS = 12000;
 const LEGACY_PRODUCTS_KEY = "mirvalis-products";
 const LEGACY_PROMOTIONS_KEY = "mirvalis-promotions";
 const LEGACY_MIGRATION_KEY = "mirvalis-supabase-migration-v1";
+const FALLBACK_PRODUCT_IMAGE = "/mirvalis-logo.jpeg";
 
 export const sharedCatalogEnabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
@@ -21,7 +22,7 @@ function normalizeNumber(value, fallback = 0) {
 function normalizeImages(value) {
   if (Array.isArray(value)) return value.filter(Boolean);
   if (typeof value === "string" && value) return [value];
-  return [];
+  return [FALLBACK_PRODUCT_IMAGE];
 }
 
 function normalizeCategory(row) {
@@ -182,8 +183,20 @@ async function supabaseRequest(path, options = {}) {
 }
 
 async function fetchProductsFromTable(tableName) {
-  const rows = await supabaseRequest(`${tableName}?select=*&order=created_at.desc`);
+  const rows = await supabaseRequest(
+    `${tableName}?select=id,name,category,price,promotional_price,promotion_active,featured,description,available_quantity,sold_out,created_at&order=created_at.desc`
+  );
   return (rows || []).map(productFromRow);
+}
+
+async function fetchProductImage(tableName, id) {
+  const rows = await supabaseRequest(
+    `${tableName}?select=id,images&id=eq.${encodeURIComponent(id)}&limit=1`
+  );
+  return {
+    id,
+    images: normalizeImages(rows?.[0]?.images)
+  };
 }
 
 async function findWritableProductsTable() {
@@ -297,6 +310,27 @@ export async function fetchSharedProducts() {
   }
 
   return dedupeById(results);
+}
+
+export async function hydrateSharedProductImages(products) {
+  if (!products.length) return products;
+
+  const tableName = writableProductsTable || (await findWritableProductsTable());
+  const hydrated = await Promise.allSettled(
+    products.map((product) => fetchProductImage(tableName, product.id))
+  );
+  const imagesById = new Map();
+
+  hydrated.forEach((result) => {
+    if (result.status === "fulfilled" && result.value.images.length) {
+      imagesById.set(result.value.id, result.value.images);
+    }
+  });
+
+  return products.map((product) => ({
+    ...product,
+    images: imagesById.get(product.id) || product.images
+  }));
 }
 
 export async function fetchSharedPromotions() {

@@ -18,6 +18,7 @@ import {
   deleteSharedPromotion,
   fetchSharedProducts,
   fetchSharedPromotions,
+  hydrateSharedProductImages,
   migrateLegacyCatalogToSupabase,
   saveSharedProduct,
   saveSharedPromotion,
@@ -75,14 +76,25 @@ function App() {
     }
 
     try {
-      const migration = await migrateLegacyCatalogToSupabase();
+      let migration = { products: 0, promotions: 0, skipped: true };
+      let migrationError = "";
+
+      try {
+        migration = await migrateLegacyCatalogToSupabase();
+      } catch (error) {
+        migrationError = `Migracao local nao concluida: ${error.message}`;
+      }
+
       const remoteProducts = await fetchSharedProducts();
       const remotePromotions = await fetchSharedPromotions();
       setProducts(remoteProducts);
       setPromotions(remotePromotions);
+      hydrateSharedProductImages(remoteProducts).then((productsWithImages) => {
+        setProducts(productsWithImages);
+      });
       setCatalogStatus({
         loading: false,
-        error: "",
+        error: migrationError,
         shared: true,
         migration:
           !migration.skipped && (migration.products || migration.promotions)
