@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Gem, MessageCircle, ShieldCheck } from "lucide-react";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
@@ -12,16 +12,15 @@ import { Logo } from "./components/Logo";
 import { TrustSection } from "./components/TrustSection";
 import { FloatingWhatsApp } from "./components/FloatingWhatsApp";
 import { PromotionsSection } from "./components/PromotionsSection";
-import { CATALOG_VERSION, initialProducts } from "./data/initialProducts";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import {
   deleteSharedProduct,
   deleteSharedPromotion,
   fetchSharedProducts,
   fetchSharedPromotions,
+  migrateLegacyCatalogToSupabase,
   saveSharedProduct,
   saveSharedPromotion,
-  seedSharedProducts,
   sharedCatalogEnabled
 } from "./lib/catalogStore";
 import { getProductStock, isProductUnavailable } from "./lib/product";
@@ -29,50 +28,19 @@ import { applyPromotionsToProducts } from "./lib/promotions";
 import { MIRVALIS_WHATSAPP } from "./lib/whatsapp";
 import { ADMIN_ROUTE } from "./lib/adminAuth";
 
-const LOCAL_PRODUCTS_KEY = "mirvalis-products";
-const LOCAL_PROMOTIONS_KEY = "mirvalis-promotions";
-const LOCAL_CATALOG_VERSION_KEY = "mirvalis-catalog-version";
-
-function readLocalCatalog() {
-  try {
-    if (window.localStorage.getItem(LOCAL_CATALOG_VERSION_KEY) !== CATALOG_VERSION) {
-      window.localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(initialProducts));
-      window.localStorage.setItem(LOCAL_PROMOTIONS_KEY, JSON.stringify([]));
-      window.localStorage.setItem(LOCAL_CATALOG_VERSION_KEY, CATALOG_VERSION);
-      return { products: initialProducts, promotions: [] };
-    }
-
-    return {
-      products: JSON.parse(window.localStorage.getItem(LOCAL_PRODUCTS_KEY) || "null") || initialProducts,
-      promotions: JSON.parse(window.localStorage.getItem(LOCAL_PROMOTIONS_KEY) || "[]")
-    };
-  } catch {
-    return { products: initialProducts, promotions: [] };
-  }
-}
-
-function saveLocalCatalog(products, promotions) {
-  window.localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(products));
-  window.localStorage.setItem(LOCAL_PROMOTIONS_KEY, JSON.stringify(promotions));
-  window.localStorage.setItem(LOCAL_CATALOG_VERSION_KEY, CATALOG_VERSION);
-}
-
 function App() {
-  const localCatalog = readLocalCatalog();
-  const [products, setProducts] = useState(localCatalog.products);
-  const [promotions, setPromotions] = useState(localCatalog.promotions);
-  const productsRef = useRef(localCatalog.products);
-  const promotionsRef = useRef(localCatalog.promotions);
+  const [products, setProducts] = useState([]);
+  const [promotions, setPromotions] = useState([]);
+  const productsRef = useRef([]);
+  const promotionsRef = useRef([]);
   const [catalogStatus, setCatalogStatus] = useState({
     loading: sharedCatalogEnabled,
     error: "",
-    shared: sharedCatalogEnabled
+    shared: sharedCatalogEnabled,
+    migration: ""
   });
   const [cartItems, setCartItems] = useLocalStorage("mirvalis-cart", []);
-  const [whatsappNumber, setWhatsappNumber] = useLocalStorage(
-    "mirvalis-whatsapp",
-    MIRVALIS_WHATSAPP
-  );
+  const [whatsappNumber, setWhatsappNumber] = useState(MIRVALIS_WHATSAPP);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("todos");
@@ -93,13 +61,11 @@ function App() {
 
   const loadCatalog = useCallback(async ({ quiet = false } = {}) => {
     if (!sharedCatalogEnabled) {
-      const localData = readLocalCatalog();
-      setProducts(localData.products);
-      setPromotions(localData.promotions);
       setCatalogStatus({
         loading: false,
-        error: "Supabase nao configurado. Usando dados locais deste navegador.",
-        shared: false
+        error: "Supabase nao configurado. O catalogo publico precisa do banco para produtos e promocoes.",
+        shared: false,
+        migration: ""
       });
       return;
     }
@@ -109,22 +75,26 @@ function App() {
     }
 
     try {
-      let remoteProducts = await fetchSharedProducts();
-      if (remoteProducts.length === 0) {
-        remoteProducts = await seedSharedProducts(initialProducts);
-      }
+      const migration = await migrateLegacyCatalogToSupabase();
+      const remoteProducts = await fetchSharedProducts();
       const remotePromotions = await fetchSharedPromotions();
       setProducts(remoteProducts);
       setPromotions(remotePromotions);
-      setCatalogStatus({ loading: false, error: "", shared: true });
-    } catch (error) {
-      const localData = readLocalCatalog();
-      setProducts(localData.products);
-      setPromotions(localData.promotions);
       setCatalogStatus({
         loading: false,
-        error: `Não foi possível carregar o Supabase. Fallback local ativo: ${error.message}`,
-        shared: false
+        error: "",
+        shared: true,
+        migration:
+          !migration.skipped && (migration.products || migration.promotions)
+            ?`Migracao local concluida: ${migration.products} produto(s) e ${migration.promotions} promocao(oes).`
+            : ""
+      });
+    } catch (error) {
+      setCatalogStatus({
+        loading: false,
+        error: `Nao foi possivel carregar o Supabase: ${error.message}`,
+        shared: false,
+        migration: ""
       });
     }
   }, []);
@@ -257,27 +227,26 @@ function App() {
     setCartItems((currentItems) => currentItems.filter((item) => item.id !== id));
   };
 
-  const persistLocalSnapshot = (nextProducts = productsRef.current, nextPromotions = promotionsRef.current) => {
-    if (!sharedCatalogEnabled) {
-      saveLocalCatalog(nextProducts, nextPromotions);
-    }
-  };
-
   const handleSaveProduct = async (product, { editing = false } = {}) => {
     const nextProducts = editing
       ?productsRef.current.map((currentProduct) => (currentProduct.id === product.id ?product : currentProduct))
       : [product, ...productsRef.current];
 
-    setProducts(nextProducts);
-    persistLocalSnapshot(nextProducts);
+    if (!sharedCatalogEnabled) {
+      setCatalogStatus((current) => ({
+        ...current,
+        error: "Supabase nao configurado. Produto nao foi salvo no catalogo publico.",
+        shared: false
+      }));
+      return;
+    }
 
-    if (sharedCatalogEnabled) {
-      try {
-        await saveSharedProduct(product);
-        await loadCatalog({ quiet: true });
-      } catch (error) {
-        setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
-      }
+    try {
+      await saveSharedProduct(product);
+      setProducts(nextProducts);
+      await loadCatalog({ quiet: true });
+    } catch (error) {
+      setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
     }
   };
 
@@ -288,18 +257,23 @@ function App() {
       productIds: (promotion.productIds || []).filter((productId) => productId !== id)
     }));
 
-    setProducts(nextProducts);
-    setPromotions(nextPromotions);
-    persistLocalSnapshot(nextProducts, nextPromotions);
+    if (!sharedCatalogEnabled) {
+      setCatalogStatus((current) => ({
+        ...current,
+        error: "Supabase nao configurado. Produto nao foi removido do catalogo publico.",
+        shared: false
+      }));
+      return;
+    }
 
-    if (sharedCatalogEnabled) {
-      try {
-        await deleteSharedProduct(id);
-        await Promise.all(nextPromotions.map((promotion) => saveSharedPromotion(promotion)));
-        await loadCatalog({ quiet: true });
-      } catch (error) {
-        setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
-      }
+    try {
+      await deleteSharedProduct(id);
+      await Promise.all(nextPromotions.map((promotion) => saveSharedPromotion(promotion)));
+      setProducts(nextProducts);
+      setPromotions(nextPromotions);
+      await loadCatalog({ quiet: true });
+    } catch (error) {
+      setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
     }
   };
 
@@ -310,32 +284,42 @@ function App() {
         )
       : [promotion, ...promotionsRef.current];
 
-    setPromotions(nextPromotions);
-    persistLocalSnapshot(productsRef.current, nextPromotions);
+    if (!sharedCatalogEnabled) {
+      setCatalogStatus((current) => ({
+        ...current,
+        error: "Supabase nao configurado. Promocao nao foi salva no catalogo publico.",
+        shared: false
+      }));
+      return;
+    }
 
-    if (sharedCatalogEnabled) {
-      try {
-        await saveSharedPromotion(promotion);
-        await loadCatalog({ quiet: true });
-      } catch (error) {
-        setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
-      }
+    try {
+      await saveSharedPromotion(promotion);
+      setPromotions(nextPromotions);
+      await loadCatalog({ quiet: true });
+    } catch (error) {
+      setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
     }
   };
 
   const handleDeletePromotion = async (id) => {
     const nextPromotions = promotionsRef.current.filter((promotion) => promotion.id !== id);
 
-    setPromotions(nextPromotions);
-    persistLocalSnapshot(productsRef.current, nextPromotions);
+    if (!sharedCatalogEnabled) {
+      setCatalogStatus((current) => ({
+        ...current,
+        error: "Supabase nao configurado. Promocao nao foi removida do catalogo publico.",
+        shared: false
+      }));
+      return;
+    }
 
-    if (sharedCatalogEnabled) {
-      try {
-        await deleteSharedPromotion(id);
-        await loadCatalog({ quiet: true });
-      } catch (error) {
-        setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
-      }
+    try {
+      await deleteSharedPromotion(id);
+      setPromotions(nextPromotions);
+      await loadCatalog({ quiet: true });
+    } catch (error) {
+      setCatalogStatus((current) => ({ ...current, error: error.message, shared: false }));
     }
   };
 
@@ -493,3 +477,4 @@ function App() {
 }
 
 export default App;
+

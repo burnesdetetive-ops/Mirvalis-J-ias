@@ -246,6 +246,11 @@ export function AdminPanel({
               {catalogStatus.error}
             </p>
           )}
+          {catalogStatus?.migration && (
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-mir-gold/70">
+              {catalogStatus.migration}
+            </p>
+          )}
           <button
             type="button"
             onClick={onLogout}
