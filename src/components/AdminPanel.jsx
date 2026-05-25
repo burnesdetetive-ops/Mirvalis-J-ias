@@ -29,13 +29,75 @@ const emptyProduct = {
   images: []
 };
 
-function fileToDataUrl(file) {
+const PRODUCT_IMAGE_MAX_SIZE = 1200;
+const PRODUCT_IMAGE_QUALITY = 0.72;
+const PRODUCT_IMAGE_FORMAT = "image/webp";
+
+function blobToDataUrl(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
     reader.onerror = reject;
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(blob);
   });
+}
+
+function loadFileImage(file) {
+  return new Promise((resolve, reject) => {
+    const imageUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(imageUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(imageUrl);
+      reject(new Error("Nao foi possivel carregar a imagem."));
+    };
+    image.src = imageUrl;
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), type, quality);
+  });
+}
+
+async function compressProductImage(file) {
+  const image = await loadFileImage(file);
+  const largestSide = Math.max(image.naturalWidth, image.naturalHeight);
+  const scale = largestSide > PRODUCT_IMAGE_MAX_SIZE ? PRODUCT_IMAGE_MAX_SIZE / largestSide : 1;
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return blobToDataUrl(file);
+  }
+
+  canvas.width = width;
+  canvas.height = height;
+  context.drawImage(image, 0, 0, width, height);
+
+  const compressedBlob =
+    (await canvasToBlob(canvas, PRODUCT_IMAGE_FORMAT, PRODUCT_IMAGE_QUALITY)) ||
+    (await canvasToBlob(canvas, "image/jpeg", PRODUCT_IMAGE_QUALITY));
+
+  return compressedBlob ?blobToDataUrl(compressedBlob) : blobToDataUrl(file);
+}
+
+async function fileToProductImage(file) {
+  try {
+    return await compressProductImage(file);
+  } catch {
+    return blobToDataUrl(file);
+  }
+}
+
+function compressProductImages(files) {
+  return Promise.all(files.map(fileToProductImage));
 }
 
 function createSlug(value) {
@@ -132,8 +194,9 @@ export function AdminPanel({
 
   const handleImageUpload = async (event) => {
     const files = Array.from(event.target.files || []);
-    const images = await Promise.all(files.map(fileToDataUrl));
+    const images = await compressProductImages(files);
     setForm((currentForm) => ({ ...currentForm, images: [...currentForm.images, ...images] }));
+    event.target.value = "";
   };
 
   const updateProduct = (field, value) => {

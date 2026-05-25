@@ -4,6 +4,8 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const PRODUCT_TABLE_CANDIDATES = ["produtos_mirvalis", "mirvalis_products"];
 const PROMOTIONS_TABLE = "mirvalis_promotions";
 const REQUEST_TIMEOUT_MS = 12000;
+const IMAGE_REQUEST_TIMEOUT_MS = 18000;
+const IMAGE_HYDRATION_BATCH_SIZE = 6;
 
 const LEGACY_PRODUCTS_KEY = "mirvalis-products";
 const LEGACY_PROMOTIONS_KEY = "mirvalis-promotions";
@@ -193,13 +195,42 @@ async function fetchProductsFromTable(tableName) {
 
 async function fetchProductImage(tableName, id) {
   const rows = await supabaseRequest(
-    `${tableName}?select=id,images&id=eq.${encodeURIComponent(id)}&limit=1`,
-    { timeoutMs: 45000 }
+    `${tableName}?select=id,main_image:images->>0&id=eq.${encodeURIComponent(id)}&limit=1`,
+    { timeoutMs: IMAGE_REQUEST_TIMEOUT_MS }
   );
   return {
     id,
-    images: normalizeImages(rows?.[0]?.images)
+    images: normalizeImages(rows?.[0]?.main_image)
   };
+}
+
+async function hydrateProductImageQueue(tableName, products, imagesById, onProductImages) {
+  let nextIndex = 0;
+
+  async function hydrateNextProduct() {
+    const product = products[nextIndex];
+    nextIndex += 1;
+
+    if (!product) return;
+
+    try {
+      const imageResult = await fetchProductImage(tableName, product.id);
+      if (imageResult.images[0]) {
+        imagesById.set(imageResult.id, imageResult.images);
+        onProductImages?.(imageResult.id, imageResult.images);
+      }
+    } catch {
+      // Keep the placeholder if a legacy oversized image times out.
+    }
+
+    await hydrateNextProduct();
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(IMAGE_HYDRATION_BATCH_SIZE, products.length) }, () =>
+      hydrateNextProduct()
+    )
+  );
 }
 
 async function findWritableProductsTable() {
@@ -320,19 +351,7 @@ export async function hydrateSharedProductImages(products, onProductImages) {
 
   const tableName = writableProductsTable || (await findWritableProductsTable());
   const imagesById = new Map();
-  const visibleProductsFirst = products.slice(0, 16);
-
-  for (const product of visibleProductsFirst) {
-    try {
-      const imageResult = await fetchProductImage(tableName, product.id);
-      if (imageResult.images.length) {
-        imagesById.set(imageResult.id, imageResult.images);
-        onProductImages?.(imageResult.id, imageResult.images);
-      }
-    } catch {
-      // Keep the fallback image if a heavy base64 image times out.
-    }
-  }
+  await hydrateProductImageQueue(tableName, products, imagesById, onProductImages);
 
   return products.map((product) => ({
     ...product,

@@ -87,9 +87,20 @@ function App() {
 
       const remoteProducts = await fetchSharedProducts();
       const remotePromotions = await fetchSharedPromotions();
-      setProducts(remoteProducts);
+      const currentImagesById = new Map(
+        productsRef.current
+          .filter((product) => product.images?.[0])
+          .map((product) => [product.id, product.images])
+      );
+      const productsWithCachedImages = remoteProducts.map((product) => ({
+        ...product,
+        images: currentImagesById.get(product.id) || product.images
+      }));
+      const productsNeedingImages = productsWithCachedImages.filter((product) => !product.images?.[0]);
+
+      setProducts(productsWithCachedImages);
       setPromotions(remotePromotions);
-      hydrateSharedProductImages(remoteProducts, (productId, images) => {
+      hydrateSharedProductImages(productsNeedingImages, (productId, images) => {
         setProducts((currentProducts) =>
           currentProducts.map((product) =>
             product.id === productId ?{ ...product, images } : product
@@ -121,7 +132,7 @@ function App() {
 
     const interval = window.setInterval(() => {
       loadCatalog({ quiet: true });
-    }, 5000);
+    }, 30000);
 
     return () => window.clearInterval(interval);
   }, [loadCatalog]);
