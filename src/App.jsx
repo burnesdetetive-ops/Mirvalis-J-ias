@@ -113,7 +113,7 @@ function App() {
         shared: true,
         migration:
           !migration.skipped && (migration.products || migration.promotions)
-            ?`Migracao local concluida: ${migration.products} produto(s) e ${migration.promotions} promocao(oes).`
+            ?`Migração local concluída: ${migration.products} produto(s) e ${migration.promotions} promoção(ões).`
             : ""
       });
     } catch (error) {

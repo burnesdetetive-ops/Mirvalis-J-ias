@@ -8,7 +8,7 @@ export function sanitizeWhatsAppNumber(value) {
 
 function getProductLines(product) {
   const lines = [
-    "Olá, MIRVALIS. Tenho interesse nesta joia:",
+    "Olá, tenho interesse nesta peça da Mirvalis:",
     "",
     `Produto: ${product.name}`
   ];
@@ -20,18 +20,22 @@ function getProductLines(product) {
     lines.push(`Preço: ${formatCurrency(product.price)}`);
   }
 
+  lines.push(`Código: ${product.id}`);
+  lines.push("");
+  lines.push("Ainda está disponível?");
+
   return lines;
 }
 
 function getCartLines(items, total) {
   return [
-    "Olá, MIRVALIS. Gostaria de finalizar meu pedido:",
+    "Olá, gostaria de finalizar meu pedido Mirvalis:",
     "",
     ...items.map((item) => {
       const priceLabel = item.promotion
         ?`${formatCurrency(item.price * item.quantity)} promocional`
         : formatCurrency(item.price * item.quantity);
-      return `- ${item.name} | qtd. ${item.quantity} | ${priceLabel}`;
+      return `- ${item.name} | código: ${item.id} | qtd. ${item.quantity} | ${priceLabel}`;
     }),
     "",
     `Total: ${formatCurrency(total)}`
@@ -44,7 +48,7 @@ export function buildWhatsAppUrl({ items, total, product, phone }) {
     ?getProductLines(product)
     : safeItems.length
       ?getCartLines(safeItems, total)
-      : ["Olá, MIRVALIS. Gostaria de atendimento para conhecer as joias disponíveis."];
+      : ["Olá, gostaria de atendimento para conhecer as joias disponíveis da Mirvalis."];
 
   return `https://api.whatsapp.com/send?phone=${sanitizeWhatsAppNumber(phone)}&text=${encodeURIComponent(lines.join("\n"))}`;
 }

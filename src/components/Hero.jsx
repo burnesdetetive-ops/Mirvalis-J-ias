@@ -4,7 +4,7 @@ import { Logo } from "./Logo";
 
 export function Hero({ onShop }) {
   return (
-    <section id="inicio" className="relative min-h-[92vh] overflow-hidden pt-28">
+    <section id="inicio" className="relative min-h-[86vh] overflow-hidden pt-24 sm:min-h-[92vh] sm:pt-28">
       <div className="absolute inset-0">
         <img
           src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1800&q=86"
@@ -19,7 +19,7 @@ export function Hero({ onShop }) {
         <div className="h-px w-full bg-gradient-to-r from-transparent via-mir-gold/45 to-transparent" />
       </div>
 
-      <div className="relative mx-auto grid min-h-[calc(92vh-7rem)] max-w-7xl items-center px-4 pb-20 sm:px-6 lg:grid-cols-[1.08fr_0.92fr] lg:px-8">
+      <div className="relative mx-auto grid min-h-[calc(86vh-6rem)] max-w-7xl items-start px-4 pb-16 pt-12 sm:min-h-[calc(92vh-7rem)] sm:items-center sm:px-6 sm:pb-20 sm:pt-0 lg:grid-cols-[1.08fr_0.92fr] lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
